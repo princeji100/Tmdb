@@ -1,0 +1,80 @@
+@import "tailwindcss";
+
+@layer utilities {
+    .touch-pan-x {
+        touch-action: pan-x;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .select-none {
+        -webkit-user-select: none;
+        user-select: none;
+    }
+
+    .bg-gradient-radial {
+        background-image: radial-gradient(var(--tw-gradient-stops));
+    }
+
+    .animate-shimmer {
+        animation: shimmer 2s linear infinite;
+        background: linear-gradient(90deg,
+                transparent 0%,
+                rgba(255, 255, 255, 0.05) 50%,
+                transparent 100%);
+        background-size: 200% 100%;
+    }
+
+    .glass-effect {
+        @apply bg-white/10 backdrop-blur-md border border-white/20;
+    }
+
+    .hover-glass {
+        @apply hover:bg-white/20 transition-colors duration-300;
+    }
+
+    .text-shadow {
+        text-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+    }
+
+    .glass-card {
+        @apply bg-zinc-900/60 backdrop-blur-sm border border-white/10 rounded-xl;
+    }
+
+    .hover-lift {
+        @apply transition-all duration-300 hover:translate-y-[-4px] hover:shadow-xl;
+    }
+
+    .text-gradient {
+        @apply bg-clip-text text-transparent bg-gradient-to-r from-yellow-500 to-yellow-300;
+    }
+
+    .card-hover {
+        @apply hover:bg-white/5 transition-colors duration-300;
+    }
+}
+
+@keyframes shimmer {
+    from {
+        background-position: 200% 0;
+    }
+
+    to {
+        background-position: -200% 0;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-fadeIn {
+    animation: fadeIn 0.5s ease-out forwards;
+}
