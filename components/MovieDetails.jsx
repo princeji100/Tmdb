@@ -26,9 +26,9 @@ const MovieDetailsSkeleton = () => (
         className="min-h-screen bg-gradient-to-b from-black to-zinc-900 overflow-x-hidden"
     >
         {/* Hero Section */}
-        <div className="relative h-[60vh] sm:h-[70vh] w-full">
+        <div className="relative min-h-[80vh] sm:min-h-[60vh] md:h-[70vh] w-full">
             <div className="absolute inset-0 bg-gradient-radial from-zinc-800/50 to-black animate-pulse" />
-            <div className="relative container mx-auto px-4 sm:px-6 h-full flex items-end pb-8 sm:pb-16">
+            <div className="relative container mx-auto px-3 sm:px-4 md:px-6 h-full flex flex-col justify-end py-6 sm:py-8 md:pb-16">
                 <div className="flex flex-col sm:flex-row gap-6 sm:gap-8 w-full">
                     <div className="w-32 sm:w-44 md:w-64 lg:w-80 xl:w-96 mx-auto sm:mx-0 aspect-[2/3] bg-gradient-to-br from-zinc-700/50 to-zinc-800/50 rounded-xl shadow-2xl animate-pulse" />
                     <div className="space-y-4 sm:space-y-8 flex-1 text-center sm:text-left">
@@ -174,7 +174,7 @@ const MovieDetails = () => {
                     className="min-h-screen bg-gradient-to-b from-black to-zinc-900 overflow-x-hidden"
                 >
                     {/* Hero Section */}
-                    <div className="relative h-[60vh] sm:h-[70vh] w-full">
+                    <div className="relative min-h-[80vh] sm:min-h-[60vh] md:h-[70vh] w-full">
                         <motion.div
                             className="absolute inset-0 w-full h-full scale-105 transition-all duration-1000"
                             style={{
@@ -189,18 +189,18 @@ const MovieDetails = () => {
                         >
                             <div className="absolute inset-0 bg-gradient-to-t from-black via-black/90 to-transparent" />
                         </motion.div>
-                        <div className="relative container mx-auto px-4 sm:px-6 h-full flex flex-col sm:flex-row items-end pb-8 sm:pb-16">
+                        <div className="relative container mx-auto px-3 sm:px-4 md:px-6 h-full flex flex-col justify-end py-6 sm:py-8 md:pb-16">
                             <motion.div
-                                className="flex flex-col sm:flex-row gap-6 sm:gap-8 w-full"
+                                className="flex flex-col sm:flex-row gap-4 sm:gap-6 md:gap-8 w-full max-w-7xl mx-auto"
                                 variants={itemVariants}
                             >
                                 {/* Poster */}
                                 <motion.div
-                                    className="w-32 sm:w-44 md:w-64 lg:w-80 xl:w-96 shrink-0 mx-auto sm:mx-0"
+                                    className="w-28 xs:w-32 sm:w-44 md:w-64 lg:w-80 xl:w-96 shrink-0 mx-auto sm:mx-0"
                                     whileHover={{ scale: 1.05 }}
                                     transition={{ duration: 0.3 }}
                                 >
-                                    <div className="aspect-[2/3] rounded-xl overflow-hidden shadow-2xl hover:shadow-yellow-500/30 transition-all duration-300">
+                                    <div className="aspect-[2/3] rounded-lg sm:rounded-xl overflow-hidden shadow-2xl hover:shadow-yellow-500/30 transition-all duration-300">
                                         <img
                                             src={movie.poster}
                                             alt={movie.title}
@@ -210,42 +210,42 @@ const MovieDetails = () => {
                                 </motion.div>
                                 {/* Info */}
                                 <motion.div
-                                    className="text-white w-full max-w-2xl mt-4 sm:mt-0 text-center sm:text-left"
+                                    className="text-white w-full max-w-2xl mt-3 sm:mt-0 text-center sm:text-left flex-1 min-w-0"
                                     variants={itemVariants}
                                 >
-                                    <h1 className="text-2xl sm:text-4xl lg:text-6xl font-bold mb-4 sm:mb-6 leading-tight drop-shadow-lg">
+                                    <h1 className="text-xl xs:text-2xl sm:text-4xl lg:text-6xl font-bold mb-3 sm:mb-4 md:mb-6 leading-tight drop-shadow-lg">
                                         {movie.title}
                                     </h1>
                                     {/* Metadata */}
-                                    <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 sm:gap-4 text-xs sm:text-sm lg:text-base mb-6 sm:mb-8">
+                                    <div className="flex flex-wrap items-center justify-center sm:justify-start gap-1.5 sm:gap-2 md:gap-4 text-xs sm:text-sm lg:text-base mb-4 sm:mb-6 md:mb-8">
                                         <motion.div
-                                            className="flex items-center bg-black/40 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full backdrop-blur-sm border border-white/10"
+                                            className="flex items-center bg-black/40 px-2 sm:px-3 md:px-4 py-1 sm:py-1.5 md:py-2 rounded-full backdrop-blur-sm border border-white/10"
                                             whileHover={{ scale: 1.05 }}
                                         >
-                                            <Star className="w-4 sm:w-5 h-4 sm:h-5 text-yellow-500 mr-1 sm:mr-2" fill="currentColor" />
-                                            <span className="font-semibold">{movie.rating}</span>
+                                            <Star className="w-3 sm:w-4 md:w-5 h-3 sm:h-4 md:h-5 text-yellow-500 mr-1 sm:mr-1.5 md:mr-2" fill="currentColor" />
+                                            <span className="font-semibold text-xs sm:text-sm">{movie.rating}</span>
                                         </motion.div>
                                         <motion.div
-                                            className="flex items-center bg-black/40 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full backdrop-blur-sm border border-white/10"
+                                            className="flex items-center bg-black/40 px-2 sm:px-3 md:px-4 py-1 sm:py-1.5 md:py-2 rounded-full backdrop-blur-sm border border-white/10"
                                             whileHover={{ scale: 1.05 }}
                                         >
-                                            <Clock className="w-4 sm:w-5 h-4 sm:h-5 text-blue-400 mr-1 sm:mr-2" />
-                                            <span>{movie.duration}</span>
+                                            <Clock className="w-3 sm:w-4 md:w-5 h-3 sm:h-4 md:h-5 text-blue-400 mr-1 sm:mr-1.5 md:mr-2" />
+                                            <span className="text-xs sm:text-sm">{movie.duration}</span>
                                         </motion.div>
                                         <motion.div
-                                            className="flex items-center bg-black/40 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full backdrop-blur-sm border border-white/10"
+                                            className="flex items-center bg-black/40 px-2 sm:px-3 md:px-4 py-1 sm:py-1.5 md:py-2 rounded-full backdrop-blur-sm border border-white/10"
                                             whileHover={{ scale: 1.05 }}
                                         >
-                                            <Calendar className="w-4 sm:w-5 h-4 sm:h-5 text-green-400 mr-1 sm:mr-2" />
-                                            <span>{movie.year}</span>
+                                            <Calendar className="w-3 sm:w-4 md:w-5 h-3 sm:h-4 md:h-5 text-green-400 mr-1 sm:mr-1.5 md:mr-2" />
+                                            <span className="text-xs sm:text-sm">{movie.year}</span>
                                         </motion.div>
                                     </div>
                                     {/* Genres */}
-                                    <div className="flex flex-wrap justify-center sm:justify-start gap-2 mb-6 sm:mb-8">
+                                    <div className="flex flex-wrap justify-center sm:justify-start gap-1.5 sm:gap-2 mb-4 sm:mb-6 md:mb-8">
                                         {movie.genre.map((genre) => (
                                             <motion.span
                                                 key={genre}
-                                                className="px-3 sm:px-4 py-1 sm:py-1.5 bg-white/10 rounded-full text-xs sm:text-sm font-medium backdrop-blur-sm hover:bg-yellow-500/30 transition-all duration-300 cursor-pointer border border-white/10"
+                                                className="px-2 sm:px-3 md:px-4 py-0.5 sm:py-1 md:py-1.5 bg-white/10 rounded-full text-xs sm:text-sm font-medium backdrop-blur-sm hover:bg-yellow-500/30 transition-all duration-300 cursor-pointer border border-white/10"
                                                 whileHover={{ scale: 1.05 }}
                                             >
                                                 {genre}
@@ -253,35 +253,35 @@ const MovieDetails = () => {
                                         ))}
                                     </div>
                                     {/* Description */}
-                                    <p className="text-gray-300 text-sm sm:text-lg leading-relaxed mb-6 sm:mb-8 line-clamp-3 sm:line-clamp-4 transition-all duration-300">
+                                    <p className="text-gray-300 text-xs sm:text-sm md:text-lg leading-relaxed mb-4 sm:mb-6 md:mb-8 line-clamp-2 sm:line-clamp-3 md:line-clamp-4 transition-all duration-300">
                                         {movie.description}
                                     </p>
                                     {/* Actions */}
-                                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                                    <div className="flex flex-col gap-2.5 sm:gap-3 md:gap-4">
                                         <motion.button
-                                            className="group flex items-center justify-center gap-2 bg-yellow-500 text-black px-6 sm:px-8 py-2.5 sm:py-3 rounded-full hover:bg-yellow-400 transition-all duration-300 shadow-lg text-sm sm:text-base w-full sm:w-auto"
+                                            className="group flex items-center justify-center gap-1.5 sm:gap-2 bg-yellow-500 text-black px-4 sm:px-6 md:px-8 py-2 sm:py-2.5 md:py-3 rounded-full hover:bg-yellow-400 transition-all duration-300 shadow-lg text-xs sm:text-sm md:text-base w-full"
                                             whileHover={{ scale: 1.05 }}
                                             whileTap={{ scale: 0.95 }}
                                         >
-                                            <Play className="w-4 sm:w-5 h-4 sm:h-5 group-hover:animate-pulse" fill="currentColor" />
+                                            <Play className="w-3 sm:w-4 md:w-5 h-3 sm:h-4 md:h-5 group-hover:animate-pulse" fill="currentColor" />
                                             <span className="font-semibold">Watch Trailer</span>
                                         </motion.button>
-                                        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto">
+                                        <div className="flex gap-2 sm:gap-2.5 md:gap-3 w-full">
                                             <motion.button
-                                                className="group flex items-center justify-center gap-2 bg-white/10 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-full hover:bg-white/20 transition-all duration-300 backdrop-blur-sm border border-white/10 text-sm sm:text-base w-full sm:w-auto"
+                                                className="group flex items-center justify-center gap-1 sm:gap-1.5 md:gap-2 bg-white/10 text-white px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-full hover:bg-white/20 transition-all duration-300 backdrop-blur-sm border border-white/10 text-xs sm:text-sm md:text-base flex-1"
                                                 whileHover={{ scale: 1.05 }}
                                                 whileTap={{ scale: 0.95 }}
                                             >
-                                                <Heart className="w-4 sm:w-5 h-4 sm:h-5 group-hover:fill-red-500 group-hover:text-red-500 transition-all duration-300" />
-                                                <span className="font-semibold hidden md:inline">Add to Watchlist</span>
-                                                <span className="font-semibold md:hidden">Watchlist</span>
+                                                <Heart className="w-3 sm:w-4 md:w-5 h-3 sm:h-4 md:h-5 group-hover:fill-red-500 group-hover:text-red-500 transition-all duration-300" />
+                                                <span className="font-semibold hidden sm:inline md:hidden lg:inline">Add to Watchlist</span>
+                                                <span className="font-semibold sm:hidden md:inline lg:hidden">Watchlist</span>
                                             </motion.button>
                                             <motion.button
-                                                className="group flex items-center justify-center gap-2 bg-white/10 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-full hover:bg-white/20 transition-all duration-300 backdrop-blur-sm border border-white/10 text-sm sm:text-base w-full sm:w-auto"
+                                                className="group flex items-center justify-center gap-1 sm:gap-1.5 md:gap-2 bg-white/10 text-white px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-full hover:bg-white/20 transition-all duration-300 backdrop-blur-sm border border-white/10 text-xs sm:text-sm md:text-base flex-1"
                                                 whileHover={{ scale: 1.05 }}
                                                 whileTap={{ scale: 0.95 }}
                                             >
-                                                <Share2 className="w-4 sm:w-5 h-4 sm:h-5 group-hover:-translate-y-1 transition-transform duration-300" />
+                                                <Share2 className="w-3 sm:w-4 md:w-5 h-3 sm:h-4 md:h-5 group-hover:-translate-y-1 transition-transform duration-300" />
                                                 <span className="font-semibold">Share</span>
                                             </motion.button>
                                         </div>
