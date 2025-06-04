@@ -28,34 +28,43 @@ export function useSearch(query) {
     }, [query, isDebouncing, isPending]);
 
     // Memoize the transform functions for better performance
-    const transformMovie = useCallback((movie) => ({
-        id: movie.id,
-        title: movie.title,
-        year: movie.release_date?.split('-')[0] || 'TBA',
-        poster: movie.poster_path
-            ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
-            : '/placeholder.jpg',
-        rating: movie.vote_average?.toFixed(1) || 'N/A'
-    }), []);
+    const transformMovie = useCallback((movie) => {
+        if (!movie || !movie.id) return null;
+        return {
+            id: movie.id,
+            title: movie.title || 'Unknown Title',
+            year: movie.release_date?.split('-')[0] || 'TBA',
+            poster: movie.poster_path
+                ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+                : '/placeholder.jpg',
+            rating: movie.vote_average ? movie.vote_average.toFixed(1) : 'N/A'
+        };
+    }, []);
 
-    const transformPerson = useCallback((person) => ({
-        id: person.id,
-        name: person.name,
-        photo: person.profile_path
-            ? `https://image.tmdb.org/t/p/w500${person.profile_path}`
-            : '/placeholder-avatar.jpg',
-        knownFor: person.known_for_department || 'Actor'
-    }), []);
+    const transformPerson = useCallback((person) => {
+        if (!person || !person.id) return null;
+        return {
+            id: person.id,
+            name: person.name || 'Unknown Person',
+            photo: person.profile_path
+                ? `https://image.tmdb.org/t/p/w500${person.profile_path}`
+                : '/placeholder-avatar.jpg',
+            knownFor: person.known_for_department || 'Actor'
+        };
+    }, []);
 
-    const transformShow = useCallback((show) => ({
-        id: show.id,
-        title: show.name,
-        year: show.first_air_date?.split('-')[0] || 'TBA',
-        poster: show.poster_path
-            ? `https://image.tmdb.org/t/p/w500${show.poster_path}`
-            : '/placeholder.jpg',
-        rating: show.vote_average?.toFixed(1) || 'N/A'
-    }), []);
+    const transformShow = useCallback((show) => {
+        if (!show || !show.id) return null;
+        return {
+            id: show.id,
+            title: show.name || 'Unknown Show',
+            year: show.first_air_date?.split('-')[0] || 'TBA',
+            poster: show.poster_path
+                ? `https://image.tmdb.org/t/p/w500${show.poster_path}`
+                : '/placeholder.jpg',
+            rating: show.vote_average ? show.vote_average.toFixed(1) : 'N/A'
+        };
+    }, []);
 
     useEffect(() => {
         const controller = new AbortController();
@@ -86,13 +95,16 @@ export function useSearch(query) {
                     setResults({
                         movies: (moviesData.results || [])
                             .slice(0, RESULTS_PER_SECTION)
-                            .map(transformMovie),
+                            .map(transformMovie)
+                            .filter(Boolean), // Remove null values
                         actors: (peopleData.results || [])
                             .slice(0, RESULTS_PER_SECTION)
-                            .map(transformPerson),
+                            .map(transformPerson)
+                            .filter(Boolean), // Remove null values
                         shows: (showsData.results || [])
                             .slice(0, RESULTS_PER_SECTION)
                             .map(transformShow)
+                            .filter(Boolean) // Remove null values
                     });
                     setError(null);
                 }

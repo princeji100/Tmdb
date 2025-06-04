@@ -5,6 +5,12 @@ export function useDebounce(value, delay = 300) {
   const [isDebouncing, setIsDebouncing] = useState(false);
 
   useEffect(() => {
+    // Don't set debouncing state if value hasn't changed
+    if (value === debouncedValue) {
+      setIsDebouncing(false);
+      return;
+    }
+
     setIsDebouncing(true);
 
     const handler = setTimeout(() => {
@@ -16,7 +22,7 @@ export function useDebounce(value, delay = 300) {
       clearTimeout(handler);
       setIsDebouncing(false);
     };
-  }, [value, delay]);
+  }, [value, delay, debouncedValue]);
 
   return {
     debouncedValue,

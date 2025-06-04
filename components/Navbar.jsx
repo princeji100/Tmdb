@@ -25,15 +25,27 @@ export function Navbar() {
     }
   }, [searchQuery]);
 
+  // Reset selection when dropdown is hidden
+  useEffect(() => {
+    if (!isDropdownVisible) {
+      setSelectedIndex(-1);
+    }
+  }, [isDropdownVisible]);
+
   // Handle keyboard navigation
   const handleKeyDown = (e) => {
+    // Only handle keyboard navigation if dropdown is visible and search input is focused
+    if (!isDropdownVisible || document.activeElement !== searchRef.current) {
+      return;
+    }
+
     const totalItems = (results?.movies?.length || 0) +
       (results?.actors?.length || 0) +
       (results?.shows?.length || 0) +
       searchHistory.length;
 
-    if (!isDropdownVisible && ['ArrowDown', 'ArrowUp'].includes(e.key)) {
-      setIsDropdownVisible(true);
+    // If there are no items to navigate, don't handle arrow keys
+    if (totalItems === 0 && ['ArrowDown', 'ArrowUp'].includes(e.key)) {
       return;
     }
 
@@ -54,8 +66,12 @@ export function Navbar() {
 
       case "Enter":
         e.preventDefault();
-        if (selectedIndex >= 0) {
+        if (selectedIndex >= 0 && totalItems > 0) {
           handleResultSelect();
+        } else if (searchQuery.trim()) {
+          // If no item is selected but there's a query, add to history and search
+          addToHistory(searchQuery.trim());
+          setIsDropdownVisible(false);
           searchRef.current?.blur();
         }
         break;
@@ -74,15 +90,15 @@ export function Navbar() {
   const handleResultSelect = () => {
     if (selectedIndex === -1) return;
 
-    let currentIndex = 0;
-
-    // Check history items
+    let currentIndex = 0;    // Check history items
     if (selectedIndex < searchHistory.length) {
       const query = searchHistory[selectedIndex];
       setSearchQuery(query);
       addToHistory(query);
-      navigate(`/search?q=${encodeURIComponent(query)}`);
-      setIsDropdownVisible(false);
+      // Just set the search query to show results instead of navigating
+      setIsDropdownVisible(true);
+      // Keep focus on search input
+      searchRef.current?.focus();
       return;
     }
     currentIndex += searchHistory.length;
@@ -182,10 +198,18 @@ export function Navbar() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  setIsDropdownVisible(true);
+                  const value = e.target.value;
+                  // Limit input length to prevent performance issues
+                  if (value.length <= 100) {
+                    setSearchQuery(value);
+                    setIsDropdownVisible(value.length > 0);
+                  }
                 }}
-                onFocus={() => setIsDropdownVisible(true)}
+                onFocus={() => {
+                  if (searchQuery.length > 0) {
+                    setIsDropdownVisible(true);
+                  }
+                }}
                 onKeyDown={handleKeyDown}
                 placeholder="Search movies, shows, actors..."
                 className="w-full pl-12 pr-4 py-3 bg-zinc-800/30 hover:bg-zinc-800/50 
@@ -277,13 +301,16 @@ export function Navbar() {
                             {searchHistory.map((query, index) => (
                               <m.button
                                 key={query}
-                                whileHover={{ x: 4 }}
-                                onClick={(e) => {
+                                whileHover={{ x: 4 }} onClick={(e) => {
                                   e.stopPropagation();
                                   addToHistory(query);
-                                  navigate(`/search?q=${encodeURIComponent(query)}`);
-                                  setSearchQuery(""); // Clear search term
-                                  setIsDropdownVisible(false);
+                                  // Set the search query to show results
+                                  setSearchQuery(query);
+                                  setIsDropdownVisible(true);
+                                  // Reset selection to avoid keyboard navigation conflicts
+                                  setSelectedIndex(-1);
+                                  // Keep focus on search input
+                                  searchRef.current?.focus();
                                 }}
                                 className={`w-full text-left px-3 py-2 rounded-lg text-sm ${selectedIndex === index
                                   ? "bg-yellow-500/20 text-yellow-500"
