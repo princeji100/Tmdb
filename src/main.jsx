@@ -10,35 +10,71 @@ import TopRated from '../components/TopRated.jsx'
 import ActorDetails from '../components/ActorDetails.jsx'
 import ShowDetails from '../components/ShowDetails.jsx';
 import ComingSoon from '../components/ComingSoon.jsx';
+import { ErrorBoundary } from '../components/ErrorBoundary.jsx';
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <><Navbar /> <App /></>
+    element: (
+      <ErrorBoundary>
+        <Navbar />
+        <App />
+      </ErrorBoundary>
+    )
   },
   {
     path: "/movies",
-    element: <><Navbar /> <MovieList /></>
+    element: (
+      <ErrorBoundary>
+        <Navbar />
+        <MovieList />
+      </ErrorBoundary>
+    )
   },
   {
     path: "/top-rated",
-    element: <><Navbar /> <TopRated /></>
+    element: (
+      <ErrorBoundary>
+        <Navbar />
+        <TopRated />
+      </ErrorBoundary>
+    )
   },
   {
     path: "/movie/:id",
-    element: <><Navbar /> <MovieDetails /></>
+    element: (
+      <ErrorBoundary>
+        <Navbar />
+        <MovieDetails />
+      </ErrorBoundary>
+    )
   },
   {
     path: "/actor/:id",
-    element: <><Navbar /> <ActorDetails /></>
+    element: (
+      <ErrorBoundary>
+        <Navbar />
+        <ActorDetails />
+      </ErrorBoundary>
+    )
   },
   {
     path: "/show/:id",
-    element: <><Navbar /> <ShowDetails /></>
+    element: (
+      <ErrorBoundary>
+        <Navbar />
+        <ShowDetails />
+      </ErrorBoundary>
+    )
   },
   {
     path: "/coming-soon",
-    element: <><Navbar /> <ComingSoon /></>
+    element: (
+      <ErrorBoundary>
+        <Navbar />
+        <ComingSoon />
+      </ErrorBoundary>
+    )
   },
 ])
 //  its not best practicel to use You are manually adding the <Nav /> component to every route. This is not scalable and can lead to inconsistencies if you forget to include it in a new route.

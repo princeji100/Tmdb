@@ -1,4 +1,5 @@
 import { Film, Search, Menu, X, Clock, TvIcon, Star, Calendar, Trash2 } from "lucide-react";
+import { ContentLoader } from './LoadingStates';
 import { useState, useEffect, useRef } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { motion as m, AnimatePresence } from "framer-motion";
@@ -11,8 +12,11 @@ export function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [isDropdownVisible, setIsDropdownVisible] = useState(false);
+  const [isMobileSearchVisible, setIsMobileSearchVisible] = useState(false);
+  const [lastEscapeTime, setLastEscapeTime] = useState(0);
 
   const searchRef = useRef(null);
+  const mobileSearchRef = useRef(null);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
   const { searchHistory, addToHistory, clearHistory } = useSearchHistory();
@@ -34,8 +38,11 @@ export function Navbar() {
 
   // Handle keyboard navigation
   const handleKeyDown = (e) => {
-    // Only handle keyboard navigation if dropdown is visible and search input is focused
-    if (!isDropdownVisible || document.activeElement !== searchRef.current) {
+    // Only handle keyboard navigation if dropdown is visible and a search input is focused
+    const isDesktopSearchFocused = document.activeElement === searchRef.current;
+    const isMobileSearchFocused = document.activeElement === mobileSearchRef.current;
+
+    if (!isDropdownVisible || (!isDesktopSearchFocused && !isMobileSearchFocused)) {
       return;
     }
 
@@ -72,16 +79,37 @@ export function Navbar() {
           // If no item is selected but there's a query, add to history and search
           addToHistory(searchQuery.trim());
           setIsDropdownVisible(false);
-          searchRef.current?.blur();
+          // Blur the currently focused search input and close mobile search
+          if (document.activeElement === searchRef.current) {
+            searchRef.current?.blur();
+          } else if (document.activeElement === mobileSearchRef.current) {
+            mobileSearchRef.current?.blur();
+            setIsMobileSearchVisible(false); // Close mobile search bar
+          }
         }
         break;
 
       case "Escape":
         e.preventDefault();
-        setSearchQuery("");
-        setIsDropdownVisible(false);
-        setSelectedIndex(-1);
-        searchRef.current?.blur();
+        const now = Date.now();
+        const timeSinceLastEscape = now - lastEscapeTime;
+
+        if (isDropdownVisible) {
+          // First escape: hide dropdown and reset selection
+          setIsDropdownVisible(false);
+          setSelectedIndex(-1);
+          setLastEscapeTime(now);
+        } else if (timeSinceLastEscape < 500 && searchQuery.trim()) {
+          // Double escape within 500ms: clear search and close mobile search
+          setSearchQuery("");
+          setIsMobileSearchVisible(false);
+          // Blur the currently focused search input
+          if (document.activeElement === searchRef.current) {
+            searchRef.current?.blur();
+          } else if (document.activeElement === mobileSearchRef.current) {
+            mobileSearchRef.current?.blur();
+          }
+        }
         break;
     }
   };
@@ -97,8 +125,12 @@ export function Navbar() {
       addToHistory(query);
       // Just set the search query to show results instead of navigating
       setIsDropdownVisible(true);
-      // Keep focus on search input
-      searchRef.current?.focus();
+      // Keep focus on the currently focused search input
+      if (document.activeElement === searchRef.current) {
+        searchRef.current?.focus();
+      } else if (document.activeElement === mobileSearchRef.current) {
+        mobileSearchRef.current?.focus();
+      }
       return;
     }
     currentIndex += searchHistory.length;
@@ -110,6 +142,7 @@ export function Navbar() {
       navigate(`/movie/${movie.id}`);
       setSearchQuery("");
       setIsDropdownVisible(false);
+      setIsMobileSearchVisible(false); // Close mobile search bar
       return;
     }
     currentIndex += results?.movies?.length || 0;    // Check TV shows
@@ -119,6 +152,7 @@ export function Navbar() {
       navigate(`/show/${show.id}`);
       setSearchQuery("");
       setIsDropdownVisible(false);
+      setIsMobileSearchVisible(false); // Close mobile search bar
       return;
     }
     currentIndex += results?.shows?.length || 0;
@@ -130,6 +164,7 @@ export function Navbar() {
       navigate(`/actor/${actor.id}`);
       setSearchQuery("");
       setIsDropdownVisible(false);
+      setIsMobileSearchVisible(false); // Close mobile search bar
       return;
     }
   };
@@ -137,14 +172,17 @@ export function Navbar() {
   // Add click outside handler
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (
-        searchRef.current &&
-        !searchRef.current.contains(event.target) &&
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target)
-      ) {
+      const isClickInsideDesktopSearch = searchRef.current && searchRef.current.contains(event.target);
+      const isClickInsideMobileSearch = mobileSearchRef.current && mobileSearchRef.current.contains(event.target);
+      const isClickInsideDropdown = dropdownRef.current && dropdownRef.current.contains(event.target);
+
+      if (!isClickInsideDesktopSearch && !isClickInsideMobileSearch && !isClickInsideDropdown) {
         setIsDropdownVisible(false);
         setSelectedIndex(-1);
+        // Close mobile search on outside click
+        if (window.innerWidth < 768) {
+          setIsMobileSearchVisible(false);
+        }
       }
     };
 
@@ -155,12 +193,14 @@ export function Navbar() {
   // Toggle mobile menu
   const toggleMenu = () => {
     setIsMenuOpen(prev => !prev);
-    // Reset search when closing menu
+    // Reset search when closing menu or opening menu
     if (isMenuOpen) {
       setSearchQuery("");
       setIsDropdownVisible(false);
       setSelectedIndex(-1);
     }
+    // Close mobile search when opening menu
+    setIsMobileSearchVisible(false);
   };
 
   const handleResultClick = (callback) => (e) => {
@@ -168,6 +208,7 @@ export function Navbar() {
     callback();
     setSearchQuery("");
     setIsDropdownVisible(false);
+    setIsMobileSearchVisible(false); // Close mobile search bar
   };
 
   return (<header className="sticky top-0 z-50">
@@ -206,13 +247,13 @@ export function Navbar() {
                   }
                 }}
                 onFocus={() => {
-                  if (searchQuery.length > 0) {
+                  if (searchQuery.length > 0 || searchHistory.length > 0) {
                     setIsDropdownVisible(true);
                   }
                 }}
                 onKeyDown={handleKeyDown}
                 placeholder="Search movies, shows, actors..."
-                className="w-full pl-12 pr-4 py-3 bg-zinc-800/30 hover:bg-zinc-800/50 
+                className="w-full pl-12 pr-12 py-3 bg-zinc-800/30 hover:bg-zinc-800/50 
                     rounded-full border border-zinc-700/30 focus:border-yellow-500/50 
                     focus:bg-zinc-800/70 focus:outline-none text-white transition-all duration-300
                     shadow-[0_0_15px_rgba(234,179,8,0.1)] focus:shadow-[0_0_20px_rgba(234,179,8,0.2)]"
@@ -227,6 +268,25 @@ export function Navbar() {
                 <span id="search-status" className="sr-only" role="status">
                   Searching for {searchQuery}
                 </span>
+              )}
+
+              {/* Clear Button */}
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchQuery("");
+                    setIsDropdownVisible(false);
+                    setSelectedIndex(-1);
+                    searchRef.current?.focus();
+                  }}
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 p-1 
+                      text-gray-400 hover:text-yellow-500 transition-colors duration-200
+                      hover:bg-zinc-700/50 rounded-full"
+                  aria-label="Clear search"
+                >
+                  <X className="w-4 h-4" />
+                </button>
               )}
 
               {/* Dropdown - Enhanced visuals */}
@@ -244,9 +304,13 @@ export function Navbar() {
                   >
                     {/* Loading State */}
                     {loading && (
-                      <div className="p-8 flex flex-col items-center justify-center text-center">
-                        <div className="w-8 h-8 border-2 border-yellow-500 border-t-transparent rounded-full animate-spin mb-4" />
-                        <p className="text-sm text-gray-400">Searching for "{searchQuery}"...</p>
+                      <div className="p-8">
+                        <ContentLoader
+                          type="search"
+                          size="md"
+                          message={`Searching for "${searchQuery}"...`}
+                          className="p-0"
+                        />
                       </div>
                     )}
 
@@ -309,8 +373,12 @@ export function Navbar() {
                                   setIsDropdownVisible(true);
                                   // Reset selection to avoid keyboard navigation conflicts
                                   setSelectedIndex(-1);
-                                  // Keep focus on search input
-                                  searchRef.current?.focus();
+                                  // Keep focus on the currently focused search input
+                                  if (document.activeElement === searchRef.current) {
+                                    searchRef.current?.focus();
+                                  } else if (document.activeElement === mobileSearchRef.current) {
+                                    mobileSearchRef.current?.focus();
+                                  }
                                 }}
                                 className={`w-full text-left px-3 py-2 rounded-lg text-sm ${selectedIndex === index
                                   ? "bg-yellow-500/20 text-yellow-500"
@@ -497,35 +565,304 @@ export function Navbar() {
             </NavLink>
           </div>
 
-          {/* Mobile Menu Button - Enhanced */}            <button
-            onClick={toggleMenu}
-            className="md:hidden p-2 text-white hover:text-yellow-500 
-                transition-all duration-300 rounded-lg hover:bg-zinc-800/50 
-                hover:scale-105 active:scale-95"
-          >
-            {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
-        </div>          {/* Mobile Menu - Enhanced animations and styling */}
+          {/* Mobile Actions */}
+          <div className="md:hidden flex items-center gap-2">
+            {/* Mobile Search Toggle Button */}
+            <button
+              onClick={() => {
+                setIsMobileSearchVisible(!isMobileSearchVisible);
+                // Focus search input when opening
+                if (!isMobileSearchVisible) {
+                  setTimeout(() => {
+                    mobileSearchRef.current?.focus();
+                  }, 100);
+                } else {
+                  // Clear search when closing
+                  setSearchQuery("");
+                  setIsDropdownVisible(false);
+                  setSelectedIndex(-1);
+                }
+              }}
+              className={`p-2 transition-all duration-300 rounded-lg hover:bg-zinc-800/50 
+                  hover:scale-105 active:scale-95 ${isMobileSearchVisible
+                  ? "text-yellow-500 bg-zinc-800/50"
+                  : "text-white hover:text-yellow-500"
+                }`}
+              aria-label={isMobileSearchVisible ? "Close search" : "Open search"}
+            >
+              {isMobileSearchVisible ? <X className="w-5 h-5" /> : <Search className="w-5 h-5" />}
+            </button>
+
+            {/* Mobile Menu Button */}
+            <button
+              onClick={toggleMenu}
+              className="p-2 text-white hover:text-yellow-500 
+                  transition-all duration-300 rounded-lg hover:bg-zinc-800/50 
+                  hover:scale-105 active:scale-95"
+              aria-label={isMenuOpen ? "Close menu" : "Open menu"}
+            >
+              {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile Search Bar - Toggle Visible on Mobile */}
+        <div className={`md:hidden border-t border-zinc-800/50 transition-all duration-300 ease-in-out ${isMobileSearchVisible
+          ? 'max-h-96 opacity-100'
+          : 'max-h-0 opacity-0 overflow-hidden'
+          }`}>
+          <div className="container mx-auto px-4 py-3">
+            <div className="relative group">
+              <Search
+                className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 transition-colors duration-300
+                    ${loading ? "text-yellow-500 animate-pulse" : "text-gray-400 group-focus-within:text-yellow-500"}`}
+              />
+              <input
+                ref={mobileSearchRef}
+                type="text"
+                value={searchQuery}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value.length <= 100) {
+                    setSearchQuery(value);
+                    setIsDropdownVisible(value.length > 0);
+                  }
+                }}
+                onFocus={() => {
+                  if (searchQuery.length > 0 || searchHistory.length > 0) {
+                    setIsDropdownVisible(true);
+                  }
+                }}
+                onKeyDown={handleKeyDown}
+                placeholder="Search movies, shows, actors..."
+                className="mobile-search-input w-full pl-9 pr-10 py-2.5 bg-zinc-800/30 rounded-lg border border-zinc-700/30 
+                    focus:outline-none focus:border-yellow-500/50 text-white transition-all duration-300
+                    focus:bg-zinc-800/50 focus:shadow-[0_0_15px_rgba(234,179,8,0.1)] text-sm"
+                role="combobox"
+                aria-expanded={isDropdownVisible}
+                aria-controls="mobile-search-results-dropdown-main"
+                aria-activedescendant={selectedIndex >= 0 ? `mobile-search-result-main-${selectedIndex}` : undefined}
+              />
+
+              {/* Mobile Clear Button */}
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchQuery("");
+                    setIsDropdownVisible(false);
+                    setSelectedIndex(-1);
+                    mobileSearchRef.current?.focus();
+                  }}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 
+                      text-gray-400 hover:text-yellow-500 transition-colors duration-200
+                      hover:bg-zinc-700/50 rounded-full"
+                  aria-label="Clear search"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              )}
+
+              {/* Mobile Search Dropdown - Main */}
+              <AnimatePresence>
+                {isDropdownVisible && (results || searchHistory.length > 0 || loading) && searchQuery && (
+                  <m.div
+                    ref={dropdownRef}
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.2 }}
+                    className="mobile-search-dropdown absolute top-full left-0 right-0 mt-2 bg-zinc-900/95 
+                        backdrop-blur-xl rounded-xl border border-zinc-800/50 
+                        shadow-2xl overflow-hidden z-50 max-h-80 overflow-y-auto"
+                    id="mobile-search-results-dropdown-main"
+                  >
+                    {/* Loading State */}
+                    {loading && (
+                      <div className="p-6">
+                        <ContentLoader
+                          type="search"
+                          size="sm"
+                          message="Searching..."
+                          className="p-0"
+                        />
+                      </div>
+                    )}
+
+                    {/* Error State */}
+                    {error && !loading && (
+                      <div className="p-6 flex flex-col items-center justify-center text-center">
+                        <X className="w-6 h-6 text-red-500 mb-3" />
+                        <p className="text-sm text-red-400">Something went wrong</p>
+                      </div>
+                    )}
+
+                    {/* No Results */}
+                    {!loading && !error && results && !results.movies.length && !results.shows.length && !results.actors.length && (
+                      <div className="p-6 flex flex-col items-center justify-center text-center">
+                        <Search className="w-6 h-6 text-gray-600 mb-3" />
+                        <p className="text-sm text-gray-400">No results found</p>
+                      </div>
+                    )}
+
+                    {/* Search Results */}
+                    {!loading && !error && (
+                      <>
+                        {/* Search History */}
+                        {searchHistory.length > 0 && (
+                          <div className="p-3">
+                            <div className="flex items-center justify-between px-2 py-1 mb-2">
+                              <div className="flex items-center gap-2 text-xs font-medium text-gray-400">
+                                <Clock className="w-3 h-3" />
+                                <span>Recent Searches</span>
+                              </div>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  clearHistory();
+                                }}
+                                className="p-1 hover:bg-zinc-800/50 rounded text-gray-400 hover:text-yellow-500"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </button>
+                            </div>
+                            {searchHistory.slice(0, 3).map((query, index) => (
+                              <button
+                                key={query}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSearchQuery(query);
+                                  addToHistory(query);
+                                  setIsDropdownVisible(true);
+                                }}
+                                className={`w-full text-left px-3 py-2 rounded-lg text-sm mb-1 ${selectedIndex === index
+                                  ? "bg-yellow-500/20 text-yellow-500"
+                                  : "text-white hover:bg-zinc-800"
+                                  }`}
+                              >
+                                {query}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Movies */}
+                        {results?.movies?.length > 0 && (
+                          <div className="p-3 border-t border-zinc-800/50">
+                            <div className="px-2 py-1 text-xs font-medium text-gray-400 mb-2">Movies</div>
+                            {results.movies.slice(0, 4).map((movie, index) => {
+                              const movieIndex = searchHistory.length + index;
+                              return (
+                                <button
+                                  key={movie.id}
+                                  onClick={handleResultClick(() => {
+                                    addToHistory(movie.title);
+                                    navigate(`/movie/${movie.id}`);
+                                  })}
+                                  className={`w-full flex items-center gap-3 p-2 rounded-lg text-sm mb-1 ${selectedIndex === movieIndex
+                                    ? "bg-yellow-500/20 text-yellow-500"
+                                    : "text-white hover:bg-zinc-800"
+                                    }`}
+                                >
+                                  <img
+                                    src={movie.poster}
+                                    alt={movie.title}
+                                    className="w-8 h-12 rounded object-cover"
+                                  />
+                                  <div className="text-left">
+                                    <div className="font-medium">{movie.title}</div>
+                                    <div className="text-xs text-gray-400">{movie.year}</div>
+                                  </div>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
+
+                        {/* TV Shows */}
+                        {results?.shows?.length > 0 && (
+                          <div className="p-3 border-t border-zinc-800/50">
+                            <div className="px-2 py-1 text-xs font-medium text-gray-400 mb-2">TV Shows</div>
+                            {results.shows.slice(0, 4).map((show, index) => {
+                              const showIndex = searchHistory.length + (results?.movies?.length || 0) + index;
+                              return (
+                                <button
+                                  key={show.id}
+                                  onClick={handleResultClick(() => {
+                                    addToHistory(show.title);
+                                    navigate(`/show/${show.id}`);
+                                  })}
+                                  className={`w-full flex items-center gap-3 p-2 rounded-lg text-sm mb-1 ${selectedIndex === showIndex
+                                    ? "bg-yellow-500/20 text-yellow-500"
+                                    : "text-white hover:bg-zinc-800"
+                                    }`}
+                                >
+                                  <img
+                                    src={show.poster}
+                                    alt={show.title}
+                                    className="w-8 h-12 rounded object-cover"
+                                  />
+                                  <div className="text-left">
+                                    <div className="font-medium">{show.title}</div>
+                                    <div className="text-xs text-gray-400">
+                                      <TvIcon className="w-3 h-3 inline mr-1" />
+                                      {show.year}
+                                    </div>
+                                  </div>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
+
+                        {/* Actors */}
+                        {results?.actors?.length > 0 && (
+                          <div className="p-3 border-t border-zinc-800/50">
+                            <div className="px-2 py-1 text-xs font-medium text-gray-400 mb-2">Actors</div>
+                            {results.actors.slice(0, 4).map((actor, index) => {
+                              const actorIndex = searchHistory.length + (results?.movies?.length || 0) + (results?.shows?.length || 0) + index;
+                              return (
+                                <button
+                                  key={actor.id}
+                                  onClick={handleResultClick(() => {
+                                    addToHistory(actor.name);
+                                    navigate(`/actor/${actor.id}`);
+                                  })}
+                                  className={`w-full flex items-center gap-3 p-2 rounded-lg text-sm mb-1 ${selectedIndex === actorIndex
+                                    ? "bg-yellow-500/20 text-yellow-500"
+                                    : "text-white hover:bg-zinc-800"
+                                    }`}
+                                >
+                                  <img
+                                    src={actor.photo}
+                                    alt={actor.name}
+                                    className="w-8 h-8 rounded-full object-cover"
+                                  />
+                                  <div className="text-left">
+                                    <div className="font-medium">{actor.name}</div>
+                                    <div className="text-xs text-gray-400">Actor</div>
+                                  </div>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </m.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile Menu - Enhanced animations and styling */}
         <div
           className={`md:hidden overflow-hidden transition-all duration-500 ease-in-out
               ${isMenuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}
         >
           <div className="py-4 space-y-4 px-2">
-            <form className="mb-4">
-              <div className="relative group">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 
-                    group-focus-within:text-yellow-500 transition-colors duration-300" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search movies..."
-                  className="w-full pl-10 pr-4 py-2.5 bg-zinc-800/30 rounded-full border border-zinc-700/30 
-                      focus:outline-none focus:border-yellow-500/50 text-white transition-all duration-300
-                      focus:bg-zinc-800/50 focus:shadow-[0_0_15px_rgba(234,179,8,0.1)]"
-                />
-              </div>
-            </form>              <NavLink
+            <NavLink
               className={({ isActive }) =>
                 `block py-3 px-4 rounded-lg transition-all duration-300 ${isActive
                   ? "text-yellow-500 bg-yellow-500/10 font-medium"

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { motion as m, AnimatePresence } from 'framer-motion';
 import { MovieSkeleton } from './MovieSkeleton';
+import { ContentLoader, ButtonLoader, CardSkeleton, TextSkeleton } from './LoadingStates';
 
 const ratingRanges = ['5+', '6+', '7+', '8+', '9+'];
 

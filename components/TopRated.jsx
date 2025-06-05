@@ -4,6 +4,7 @@ import { motion as m, AnimatePresence } from 'framer-motion';
 import { useFetch } from '../services/useFetch';
 import { useState, useEffect, useCallback } from 'react';
 import { MovieSkeleton } from './MovieSkeleton';
+import { InlineLoader } from './LoadingStates';
 
 const TopRated = () => {
     // Add genres state
@@ -268,9 +269,7 @@ const TopRated = () => {
                         >
                             {loadingMore ? (
                                 <>
-                                    <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-black 
-                                    border-t-transparent rounded-full animate-spin"
-                                    />
+                                    <InlineLoader size="sm" className="border-black border-t-transparent" />
                                     <span>Loading more movies...</span>
                                 </>
                             ) : (

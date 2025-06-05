@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { fetchWithRetry } from '../utilities/fetchWithRetry';
 
 export function useActorDetails(actorId) {
     const [data, setData] = useState(null);
@@ -16,36 +17,10 @@ export function useActorDetails(actorId) {
                     return;
                 }
 
-                const [personRes, creditsRes, externalIdsRes] = await Promise.all([
-                    fetch(`${import.meta.env.VITE_TMDB_BASE_URL}/person/${actorId}?language=en-US`, {
-                        headers: {
-                            Authorization: `Bearer ${import.meta.env.VITE_TMDB_API_KEY}`,
-                            accept: 'application/json',
-                        },
-                    }),
-                    fetch(`${import.meta.env.VITE_TMDB_BASE_URL}/person/${actorId}/movie_credits?language=en-US`, {
-                        headers: {
-                            Authorization: `Bearer ${import.meta.env.VITE_TMDB_API_KEY}`,
-                            accept: 'application/json',
-                        },
-                    }),
-                    fetch(`${import.meta.env.VITE_TMDB_BASE_URL}/person/${actorId}/external_ids?language=en-US`, {
-                        headers: {
-                            Authorization: `Bearer ${import.meta.env.VITE_TMDB_API_KEY}`,
-                            accept: 'application/json',
-                        },
-                    })
-                ]);
-
-                // Check for response errors
-                if (!personRes.ok || !creditsRes.ok || !externalIdsRes.ok) {
-                    throw new Error('Failed to fetch actor data');
-                }
-
                 const [personData, creditsData, externalIds] = await Promise.all([
-                    personRes.json(),
-                    creditsRes.json(),
-                    externalIdsRes.json()
+                    fetchWithRetry(`${import.meta.env.VITE_TMDB_BASE_URL}/person/${actorId}?language=en-US`),
+                    fetchWithRetry(`${import.meta.env.VITE_TMDB_BASE_URL}/person/${actorId}/movie_credits?language=en-US`),
+                    fetchWithRetry(`${import.meta.env.VITE_TMDB_BASE_URL}/person/${actorId}/external_ids?language=en-US`)
                 ]);
 
                 // Transform the data with error handling

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { fetchWithRetry } from '../utilities/fetchWithRetry';
 
 export function useShowDetails(showId) {
     const [data, setData] = useState(null);
@@ -12,35 +13,10 @@ export function useShowDetails(showId) {
                     throw new Error('Invalid show ID');
                 }
 
-                const [showRes, creditsRes, similarRes] = await Promise.all([
-                    fetch(`${import.meta.env.VITE_TMDB_BASE_URL}/tv/${showId}?language=en-US`, {
-                        headers: {
-                            Authorization: `Bearer ${import.meta.env.VITE_TMDB_API_KEY}`,
-                            accept: 'application/json',
-                        },
-                    }),
-                    fetch(`${import.meta.env.VITE_TMDB_BASE_URL}/tv/${showId}/credits?language=en-US`, {
-                        headers: {
-                            Authorization: `Bearer ${import.meta.env.VITE_TMDB_API_KEY}`,
-                            accept: 'application/json',
-                        },
-                    }),
-                    fetch(`${import.meta.env.VITE_TMDB_BASE_URL}/tv/${showId}/similar?language=en-US&page=1`, {
-                        headers: {
-                            Authorization: `Bearer ${import.meta.env.VITE_TMDB_API_KEY}`,
-                            accept: 'application/json',
-                        },
-                    })
-                ]);
-
-                if (!showRes.ok || !creditsRes.ok || !similarRes.ok) {
-                    throw new Error(`API Error: ${showRes.status}`);
-                }
-
                 const [showData, creditsData, similarData] = await Promise.all([
-                    showRes.json(),
-                    creditsRes.json(),
-                    similarRes.json()
+                    fetchWithRetry(`${import.meta.env.VITE_TMDB_BASE_URL}/tv/${showId}?language=en-US`),
+                    fetchWithRetry(`${import.meta.env.VITE_TMDB_BASE_URL}/tv/${showId}/credits?language=en-US`),
+                    fetchWithRetry(`${import.meta.env.VITE_TMDB_BASE_URL}/tv/${showId}/similar?language=en-US&page=1`)
                 ]);
 
                 if (!showData.id) {

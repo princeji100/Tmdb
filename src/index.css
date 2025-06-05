@@ -76,5 +76,526 @@
 }
 
 .animate-fadeIn {
-    animation: fadeIn 0.5s ease-out forwards;
+    animation: fadeIn 0.8s ease-out forwards;
+}
+
+/* Hero Component Enhanced Styles */
+@keyframes slideInFromLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-50px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideInFromRight {
+    from {
+        opacity: 0;
+        transform: translateX(50px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+.animate-slideInLeft {
+    animation: slideInFromLeft 0.6s ease-out forwards;
+}
+
+.animate-slideInRight {
+    animation: slideInFromRight 0.6s ease-out forwards;
+}
+
+.animate-pulse-slow {
+    animation: pulse 3s ease-in-out infinite;
+}
+
+/* Glass morphism effect */
+.glass-morphism {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Enhanced text gradient effect */
+.text-gradient {
+    background: linear-gradient(135deg, #ffffff 0%, #f3f4f6 50%, #d1d5db 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Button hover effects */
+.btn-primary {
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg,
+            transparent,
+            rgba(255, 255, 255, 0.2),
+            transparent);
+    transition: left 0.5s;
+}
+
+.btn-primary:hover::before {
+    left: 100%;
+}
+
+/* Hero specific responsive styles */
+@media (max-width: 640px) {
+    .hero-content {
+        padding-bottom: 160px;
+        /* Space for indicators */
+        padding-top: 0;
+        margin-top: -40px;
+        /* Offset navbar overlap */
+    }
+
+    .hero-title {
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+        text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.9);
+        font-size: 3.5rem !important;
+    }
+
+    .hero-description {
+        line-height: 1.6;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9);
+        font-size: 1.125rem !important;
+    }
+
+    /* Enhanced mobile button styles */
+    .btn-primary {
+        box-shadow: 0 12px 35px rgba(245, 158, 11, 0.4);
+        backdrop-filter: blur(15px);
+        min-height: 60px;
+    }
+
+    .btn-primary:active {
+        transform: scale(0.98);
+    }
+
+    /* Glass morphism enhancements for mobile */
+    .glass-morphism {
+        backdrop-filter: blur(20px);
+        background: rgba(255, 255, 255, 0.2);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    /* Mobile-specific text gradient */
+    .text-gradient {
+        background: linear-gradient(135deg, #ffffff 0%, #f9fafb 20%, #e5e7eb 60%, #d1d5db 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        filter: drop-shadow(3px 3px 6px rgba(0, 0, 0, 0.7));
+    }
+
+    /* Better mobile spacing */
+    .hero-background {
+        background-position: center top !important;
+    }
+}
+
+/* Tablet optimizations */
+@media (min-width: 641px) and (max-width: 1024px) {
+    .hero-content {
+        padding-bottom: 100px;
+    }
+}
+
+/* Desktop optimizations */
+@media (min-width: 1025px) {
+    .hero-content {
+        padding-bottom: 80px;
+    }
+
+    .hero-title {
+        letter-spacing: -0.03em;
+    }
+}
+
+/* High DPI displays */
+@media (-webkit-min-device-pixel-ratio: 2),
+(min-resolution: 192dpi) {
+    .hero-background {
+        background-size: cover;
+        background-position: center;
+        image-rendering: -webkit-optimize-contrast;
+    }
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+
+    .animate-fadeIn,
+    .animate-slideInLeft,
+    .animate-slideInRight,
+    .animate-pulse-slow {
+        animation: none;
+    }
+
+    .transition-all {
+        transition: none;
+    }
+}
+
+/* Focus styles for accessibility */
+.focus-visible:focus {
+    outline: 2px solid #fbbf24;
+    outline-offset: 2px;
+}
+
+/* Carousel Component Enhanced Styles */
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.carousel-item {
+    animation: slideInUp 0.6s ease-out forwards;
+}
+
+.carousel-item:hover {
+    transform: translateY(-4px) scale(1.02);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Enhanced scrollbar for carousel */
+.carousel-container::-webkit-scrollbar {
+    height: 6px;
+}
+
+.carousel-container::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 3px;
+}
+
+.carousel-container::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 3px;
+}
+
+.carousel-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+/* Carousel responsive optimizations */
+@media (max-width: 640px) {
+    .carousel-item {
+        padding-left: 0.375rem;
+        padding-right: 0.375rem;
+    }
+
+    .carousel-title {
+        font-size: 1.25rem;
+        line-height: 1.75rem;
+    }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+    .carousel-item {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+}
+
+@media (min-width: 1025px) {
+    .carousel-item {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+
+    .carousel-item:hover {
+        transform: translateY(-6px) scale(1.03);
+    }
+}
+
+/* Smooth transitions for carousel navigation */
+.carousel-nav-button {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.carousel-nav-button:hover {
+    transform: scale(1.1);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+.carousel-nav-button:active {
+    transform: scale(0.95);
+}
+
+/* Progress bar animation */
+@keyframes progressFill {
+    from {
+        width: 0%;
+    }
+
+    to {
+        width: var(--progress-width);
+    }
+}
+
+.progress-bar {
+    animation: progressFill 0.3s ease-out forwards;
+}
+
+/* Shimmer animation for loading states */
+@keyframes shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+/* Carousel loading skeleton */
+.carousel-skeleton {
+    background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+}
+
+/* Enhanced hover effects for movie items */
+.movie-item-hover {
+    position: relative;
+    overflow: hidden;
+}
+
+.movie-item-hover::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg,
+            transparent,
+            rgba(255, 255, 255, 0.1),
+            transparent);
+    transition: left 0.5s;
+    z-index: 1;
+}
+
+.movie-item-hover:hover::before {
+    left: 100%;
+}
+
+/* Carousel fade edges */
+.carousel-fade-left {
+    background: linear-gradient(to right, rgba(0, 0, 0, 0.8), transparent);
+}
+
+.carousel-fade-right {
+    background: linear-gradient(to left, rgba(0, 0, 0, 0.8), transparent);
+}
+
+/* Touch feedback */
+.touch-feedback {
+    position: relative;
+    overflow: hidden;
+}
+
+.touch-feedback::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.3s, height 0.3s;
+}
+
+.touch-feedback:active::after {
+    width: 200px;
+    height: 200px;
+}
+
+/* Mobile Hero enhancements */
+@media (max-width: 480px) {
+    .hero-title {
+        font-size: 3rem !important;
+        line-height: 1.05;
+        margin-bottom: 1.5rem;
+        text-shadow: 4px 4px 8px rgba(0, 0, 0, 0.9);
+    }
+
+    .hero-content {
+        padding-bottom: 170px;
+        padding-left: 1rem;
+        padding-right: 1rem;
+        margin-top: -60px;
+        /* Better navbar offset */
+    }
+
+    .hero-description {
+        font-size: 1rem !important;
+        line-height: 1.7;
+    }
+
+    /* Enhanced mobile buttons */
+    .btn-primary,
+    .glass-morphism {
+        min-height: 60px;
+        /* Better touch target */
+        font-size: 1.125rem;
+        font-weight: 700;
+        padding: 1.25rem 2.5rem;
+    }
+
+    /* Mobile-specific animations */
+    .animate-fadeIn {
+        animation-duration: 1.2s;
+        animation-delay: 0.3s;
+        animation-fill-mode: both;
+    }
+
+    .animate-slideInLeft {
+        animation-delay: 0.6s;
+        animation-fill-mode: both;
+    }
+
+    .animate-slideInRight {
+        animation-delay: 0.9s;
+        animation-fill-mode: both;
+    }
+
+    /* Better mobile background positioning */
+    .hero-background {
+        background-position: center 20% !important;
+        background-size: cover !important;
+    }
+}
+
+/* Enhanced line clamping for mobile */
+.line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.line-clamp-4 {
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.line-clamp-5 {
+    display: -webkit-box;
+    -webkit-line-clamp: 5;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Mobile-specific focus styles */
+@media (max-width: 640px) {
+    .focus-visible:focus {
+        outline: 3px solid #fbbf24;
+        outline-offset: 3px;
+        border-radius: 8px;
+    }
+}
+
+/* Mobile Search Enhancements */
+@media (max-width: 768px) {
+    /* Ensure search dropdown is properly positioned */
+    .mobile-search-dropdown {
+        position: fixed;
+        top: auto;
+        left: 1rem;
+        right: 1rem;
+        z-index: 9999;
+        max-height: 60vh;
+    }
+    
+    /* Better touch targets for mobile search results */
+    .mobile-search-result {
+        min-height: 48px;
+        padding: 0.75rem;
+    }
+    
+    /* Improved mobile search input */
+    .mobile-search-input {
+        font-size: 16px; /* Prevents zoom on iOS */
+        -webkit-appearance: none;
+        border-radius: 0.5rem;
+    }
+    
+    /* Better mobile search animations */
+    .mobile-search-enter {
+        animation: mobileSearchSlideIn 0.3s ease-out;
+    }
+    
+    @keyframes mobileSearchSlideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    /* Mobile search result hover states */
+    .mobile-search-result:active {
+        background-color: rgba(245, 158, 11, 0.1);
+        transform: scale(0.98);
+    }
 }
