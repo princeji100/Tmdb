@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useDebounce } from './useDebounce';
+import { useThrottledValue } from '../utilities/performance';
 import { fetchWithRetry } from '../utilities/fetchWithRetry';
 
 const MINIMUM_QUERY_LENGTH = 2;
@@ -10,6 +11,7 @@ export function useSearch(query) {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const { debouncedValue: debouncedQuery, isDebouncing, isPending } = useDebounce(query, 350);
+    const throttledQuery = useThrottledValue(query, 200); // Faster response for better UX
 
     // Clear results if query is empty
     useEffect(() => {
@@ -20,12 +22,12 @@ export function useSearch(query) {
         }
     }, [query]);
 
-    // Show loading state while debouncing
+    // Show loading state while debouncing (use throttled for immediate feedback)
     useEffect(() => {
-        if ((isDebouncing || isPending) && query.length >= MINIMUM_QUERY_LENGTH) {
+        if ((isDebouncing || isPending) && throttledQuery.length >= MINIMUM_QUERY_LENGTH) {
             setLoading(true);
         }
-    }, [query, isDebouncing, isPending]);
+    }, [throttledQuery, isDebouncing, isPending]);
 
     // Memoize the transform functions for better performance
     const transformMovie = useCallback((movie) => {

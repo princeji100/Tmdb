@@ -215,15 +215,15 @@ export function Navbar() {
     <nav className="bg-gradient-to-r from-black/90 via-zinc-900/90 to-black/90 backdrop-blur-lg border-b border-zinc-800/50 shadow-[0_4px_30px_rgba(0,0,0,0.1)]">
       <div className="container mx-auto px-4 lg:px-8">
         {/* Main Navbar Content */}
-        <div className="h-16 md:h-20 flex items-center justify-between gap-4">
+        <div className="h-14 sm:h-16 md:h-20 flex items-center justify-between gap-2 sm:gap-4">
           {/* Logo - Enhanced with hover effect */}
           <NavLink
             className="text-white flex items-center gap-2 transform hover:scale-105 transition-all duration-300 hover:text-yellow-400"
             to="/"
             end
           >
-            <Film className="w-6 h-6 md:w-7 md:h-7 text-yellow-500 animate-pulse" />
-            <span className="text-xl md:text-2xl font-bold bg-gradient-to-r from-yellow-500 to-yellow-300 text-transparent bg-clip-text">MovieDB</span>
+            <Film className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-yellow-500 animate-pulse" />
+            <span className="text-lg sm:text-xl md:text-2xl font-bold bg-gradient-to-r from-yellow-500 to-yellow-300 text-transparent bg-clip-text">MovieDB</span>
           </NavLink>
 
           {/* Search Bar - Improved visibility and interactions */}
@@ -583,25 +583,25 @@ export function Navbar() {
                   setSelectedIndex(-1);
                 }
               }}
-              className={`p-2 transition-all duration-300 rounded-lg hover:bg-zinc-800/50 
-                  hover:scale-105 active:scale-95 ${isMobileSearchVisible
+              className={`p-2.5 sm:p-2 transition-all duration-300 rounded-lg hover:bg-zinc-800/50 
+                  hover:scale-105 active:scale-95 touch-manipulation ${isMobileSearchVisible
                   ? "text-yellow-500 bg-zinc-800/50"
                   : "text-white hover:text-yellow-500"
                 }`}
               aria-label={isMobileSearchVisible ? "Close search" : "Open search"}
             >
-              {isMobileSearchVisible ? <X className="w-5 h-5" /> : <Search className="w-5 h-5" />}
+              {isMobileSearchVisible ? <X className="w-5 h-5 sm:w-4 sm:h-4" /> : <Search className="w-5 h-5 sm:w-4 sm:h-4" />}
             </button>
 
             {/* Mobile Menu Button */}
             <button
               onClick={toggleMenu}
-              className="p-2 text-white hover:text-yellow-500 
+              className="p-2.5 sm:p-2 text-white hover:text-yellow-500 
                   transition-all duration-300 rounded-lg hover:bg-zinc-800/50 
-                  hover:scale-105 active:scale-95"
+                  hover:scale-105 active:scale-95 touch-manipulation"
               aria-label={isMenuOpen ? "Close menu" : "Open menu"}
             >
-              {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {isMenuOpen ? <X className="w-5 h-5 sm:w-6 sm:h-6" /> : <Menu className="w-5 h-5 sm:w-6 sm:h-6" />}
             </button>
           </div>
         </div>

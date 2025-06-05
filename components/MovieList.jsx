@@ -1,11 +1,77 @@
 import { Star, Play, Filter, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { motion as m, AnimatePresence } from 'framer-motion';
 import { MovieSkeleton } from './MovieSkeleton';
-import { ContentLoader, ButtonLoader, CardSkeleton, TextSkeleton } from './LoadingStates';
+import { useLazyLoad, useImagePreload } from '../utilities/performance';
 
 const ratingRanges = ['5+', '6+', '7+', '8+', '9+'];
+
+// Optimized Movie Card Component with Lazy Loading
+const OptimizedMovieCard = ({ movie, index }) => {
+    const imgRef = useRef();
+    const posterUrl = movie.poster || '/placeholder.jpg';
+
+    const isVisible = useLazyLoad(imgRef, { threshold: 0.1 });
+    const { isLoaded, error } = useImagePreload(isVisible ? posterUrl : '');
+
+    return (
+        <m.div
+            key={movie.id}
+            layout
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            transition={{ duration: 0.3, delay: index * 0.05 }}
+            className="group"
+        >
+            <Link to={`/movie/${movie.id}`} className="block">
+                <div
+                    ref={imgRef}
+                    className="aspect-[2/3] rounded-lg overflow-hidden bg-zinc-900 relative shadow-lg hover:shadow-xl transition-all duration-300"
+                >
+                    {isVisible ? (
+                        <img
+                            src={posterUrl}
+                            alt={movie.title}
+                            className={`w-full h-full object-cover transform group-hover:scale-105 transition-all duration-300 ${isLoaded ? 'opacity-100' : 'opacity-0'
+                                } ${error ? 'opacity-50' : ''}`}
+                            loading="lazy"
+                        />
+                    ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-zinc-800 to-zinc-900 animate-pulse" />
+                    )}
+
+                    {/* Overlay */}
+                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <div className="absolute bottom-0 left-0 right-0 p-2 sm:p-3">
+                            <div className="flex items-center gap-1 sm:gap-2 text-white">
+                                <Star className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-500" fill="currentColor" />
+                                <span className="text-xs sm:text-sm">{movie.rating}</span>
+                            </div>
+                        </div>
+                        <div className="absolute top-2 right-2">
+                            <Play className="w-6 h-6 sm:w-8 sm:h-8 text-white opacity-80" />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Movie Info */}
+                <div className="mt-2 sm:mt-3 space-y-1">
+                    <h3 className="text-white font-medium text-xs sm:text-sm md:text-base line-clamp-2 group-hover:text-yellow-500 transition-colors">
+                        {movie.title}
+                    </h3>
+                    <div className="flex items-center justify-between text-xs sm:text-sm text-gray-400">
+                        <span>{movie.year}</span>
+                        {movie.genre && movie.genre.length > 0 && (
+                            <span className="truncate ml-2">{movie.genre[0]}</span>
+                        )}
+                    </div>
+                </div>
+            </Link>
+        </m.div>
+    );
+};
 
 function MovieList() {
     // State declarations first
@@ -38,29 +104,37 @@ function MovieList() {
     }, []);
 
     const toggleGenre = useCallback((genreId) => {
+        setIsFiltering(true);
         setSelectedGenres(prev =>
             prev.includes(genreId)
                 ? prev.filter(g => g !== genreId)
                 : [...prev, genreId]
         );
-    }, []); // Remove setLoading from here
+        // Add small delay to show loading state
+        setTimeout(() => setIsFiltering(false), 300);
+    }, []);
 
     const toggleYear = useCallback((year) => {
+        setIsFiltering(true);
         setSelectedYears(prev =>
             prev.includes(year)
                 ? prev.filter(y => y !== year)
                 : [...prev, year] // Allow multiple year selections
         );
-    }, []); // Remove setLoading from here
+        // Add small delay to show loading state
+        setTimeout(() => setIsFiltering(false), 300);
+    }, []);
 
-    // Add this function after other toggle handlers
     const toggleRating = useCallback((rating) => {
+        setIsFiltering(true);
         setSelectedRatings(prev =>
             prev.includes(rating)
                 ? prev.filter(r => r !== rating)
                 : [...prev, rating]
         );
-    }, []); // Remove setLoading from here
+        // Add small delay to show loading state
+        setTimeout(() => setIsFiltering(false), 300);
+    }, []);
 
     const clearFilters = useCallback(() => {
         setSelectedGenres([]);
@@ -226,18 +300,19 @@ function MovieList() {
         <div className="min-h-[calc(100vh-64px)] bg-black">
             <div className="container mx-auto px-4 py-6">
                 {/* Header with Filter Toggle */}
-                <div className="flex justify-between items-center mb-8">
-                    <h1 className="text-2xl sm:text-3xl font-bold text-white mb-4">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6 sm:mb-8">
+                    <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white">
                         Popular Movies
                     </h1>
                     <button
                         onClick={() => setIsFilterOpen(prev => !prev)}
-                        className={`group p-2 rounded-full transition-colors ${isFilterOpen
-                            ? 'bg-yellow-500 text-black'
-                            : 'bg-zinc-800 text-white hover:bg-zinc-700'
+                        className={`group p-2.5 sm:p-2 rounded-full transition-all duration-300 touch-manipulation self-start sm:self-auto ${isFilterOpen
+                            ? 'bg-yellow-500 text-black scale-105'
+                            : 'bg-zinc-800 text-white hover:bg-zinc-700 hover:scale-105'
                             }`}
+                        aria-label={isFilterOpen ? 'Close filters' : 'Open filters'}
                     >
-                        <Filter className="size-6" />
+                        <Filter className="w-5 h-5 sm:w-6 sm:h-6" />
                     </button>
                 </div>
 
@@ -249,98 +324,121 @@ function MovieList() {
                             animate={{ height: 'auto', opacity: 1 }}
                             exit={{ height: 0, opacity: 0 }}
                             transition={{ duration: 0.2 }}
-                            className="overflow-hidden mb-8 bg-zinc-900/50 p-4 rounded-lg border border-zinc-800"
+                            className="overflow-hidden mb-6 sm:mb-8 bg-zinc-900/50 p-3 sm:p-4 rounded-lg border border-zinc-800"
                         >
                             {/* Genre Filters */}
-                            <div className="mb-6">
-                                <h3 className="text-white text-lg mb-3">Genre</h3>
-                                <div className="flex flex-wrap gap-2">
+                            <div className="mb-4 sm:mb-6">
+                                <h3 className="text-white text-base sm:text-lg mb-2 sm:mb-3">Genre</h3>
+                                <div className="flex flex-wrap gap-1.5 sm:gap-2">
                                     {genres.map(genre => (
                                         <m.button
                                             key={genre.id}
                                             onClick={() => toggleGenre(genre.id)}
-                                            className={`px-4 py-1.5 rounded-full text-sm transition-colors ${selectedGenres.includes(genre.id)
-                                                ? 'bg-yellow-500 text-black'
-                                                : 'bg-zinc-800 text-white hover:bg-zinc-700'
-                                                }`}
+                                            disabled={isFiltering}
+                                            className={`px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm transition-all duration-200 touch-manipulation relative ${selectedGenres.includes(genre.id)
+                                                ? 'bg-yellow-500 text-black scale-105'
+                                                : 'bg-zinc-800 text-white hover:bg-zinc-700 active:scale-95'
+                                                } ${isFiltering ? 'opacity-50 cursor-not-allowed' : ''}`}
                                             whileTap={{ scale: 0.95 }}
                                         >
-                                            {genre.name}
+                                            {isFiltering && selectedGenres.includes(genre.id) && (
+                                                <div className="absolute inset-0 flex items-center justify-center">
+                                                    <div className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin"></div>
+                                                </div>
+                                            )}
+                                            <span className={isFiltering && selectedGenres.includes(genre.id) ? 'opacity-0' : ''}>
+                                                {genre.name}
+                                            </span>
                                         </m.button>
                                     ))}
                                 </div>
                             </div>
 
                             {/* Year Filters Section */}
-                            <div className="mb-6">
-                                <div className="flex items-center justify-between mb-3">
-                                    <h3 className="text-white text-lg">Year</h3>
+                            <div className="mb-4 sm:mb-6">
+                                <div className="flex items-center justify-between mb-2 sm:mb-3">
+                                    <h3 className="text-white text-base sm:text-lg">Year</h3>
                                     {selectedYears.length > 0 && (
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-sm text-yellow-500">
+                                        <div className="flex items-center gap-1 sm:gap-2">
+                                            <span className="text-xs sm:text-sm text-yellow-500">
                                                 {selectedYears.length} selected
                                             </span>
                                             <button
                                                 onClick={() => setSelectedYears([])}
-                                                className="text-gray-400 hover:text-white"
+                                                className="text-gray-400 hover:text-white p-1 touch-manipulation"
+                                                aria-label="Clear year filters"
                                             >
-                                                <X className="w-4 h-4" />
+                                                <X className="w-3 h-3 sm:w-4 sm:h-4" />
                                             </button>
                                         </div>
                                     )}
                                 </div>
-                                <div className="flex flex-wrap gap-2 max-h-48 overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-zinc-800">
+                                <div className="flex flex-wrap gap-1.5 sm:gap-2 max-h-32 sm:max-h-48 overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-zinc-800">
                                     {availableYears.map(year => (
                                         <m.button
                                             key={year}
                                             onClick={() => toggleYear(year)}
-                                            className={`px-4 py-1.5 rounded-full text-sm transition-colors ${selectedYears.includes(year)
-                                                ? 'bg-yellow-500 text-black'
-                                                : 'bg-zinc-800 text-white hover:bg-zinc-700'
-                                                }`}
+                                            disabled={isFiltering}
+                                            className={`px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm transition-all duration-200 touch-manipulation relative ${selectedYears.includes(year)
+                                                ? 'bg-yellow-500 text-black scale-105'
+                                                : 'bg-zinc-800 text-white hover:bg-zinc-700 active:scale-95'
+                                                } ${isFiltering ? 'opacity-50 cursor-not-allowed' : ''}`}
                                             whileTap={{ scale: 0.95 }}
                                         >
-                                            {year}
+                                            {isFiltering && selectedYears.includes(year) && (
+                                                <div className="absolute inset-0 flex items-center justify-center">
+                                                    <div className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin"></div>
+                                                </div>
+                                            )}
+                                            <span className={isFiltering && selectedYears.includes(year) ? 'opacity-0' : ''}>
+                                                {year}
+                                            </span>
                                         </m.button>
                                     ))}
                                 </div>
                             </div>
 
                             {/* Rating Filter */}
-                            <div className="mb-6">
-                                <div className="flex items-center justify-between mb-3">
-                                    <h3 className="text-white text-lg">Rating</h3>
+                            <div className="mb-4 sm:mb-6">
+                                <div className="flex items-center justify-between mb-2 sm:mb-3">
+                                    <h3 className="text-white text-base sm:text-lg">Rating</h3>
                                     {selectedRatings.length > 0 && (
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-sm text-yellow-500">
+                                        <div className="flex items-center gap-1 sm:gap-2">
+                                            <span className="text-xs sm:text-sm text-yellow-500">
                                                 {selectedRatings.length} selected
                                             </span>
                                             <button
                                                 onClick={() => setSelectedRatings([])}
-                                                className="text-gray-400 hover:text-white"
+                                                className="text-gray-400 hover:text-white p-1 touch-manipulation"
+                                                aria-label="Clear rating filters"
                                             >
-                                                <X className="w-4 h-4" />
+                                                <X className="w-3 h-3 sm:w-4 sm:h-4" />
                                             </button>
                                         </div>
                                     )}
                                 </div>
-                                <div className="flex flex-wrap gap-2">
+                                <div className="flex flex-wrap gap-1.5 sm:gap-2">
                                     {ratingRanges.map(rating => (
                                         <m.button
                                             key={rating}
                                             onClick={() => toggleRating(rating.replace('+', ''))}
-                                            className={`px-4 py-1.5 rounded-full text-sm transition-colors ${selectedRatings.includes(rating.replace('+', ''))
-                                                ? 'bg-yellow-500 text-black'
-                                                : 'bg-zinc-800 text-white hover:bg-zinc-700'
-                                                }`}
+                                            disabled={isFiltering}
+                                            className={`px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm transition-all duration-200 touch-manipulation flex items-center gap-1 relative ${selectedRatings.includes(rating.replace('+', ''))
+                                                ? 'bg-yellow-500 text-black scale-105'
+                                                : 'bg-zinc-800 text-white hover:bg-zinc-700 active:scale-95'
+                                                } ${isFiltering ? 'opacity-50 cursor-not-allowed' : ''}`}
                                             whileTap={{ scale: 0.95 }}
                                         >
-                                            <Star
-                                                className={`w-4 h-4 inline-block mr-1 ${selectedRatings.includes(rating.replace('+', ''))
-                                                    ? 'fill-current'
-                                                    : ''
-                                                    }`}
-                                            />
+                                            {isFiltering && selectedRatings.includes(rating.replace('+', '')) ? (
+                                                <div className="w-3 h-3 sm:w-4 sm:h-4 border border-current border-t-transparent rounded-full animate-spin"></div>
+                                            ) : (
+                                                <Star
+                                                    className={`w-3 h-3 sm:w-4 sm:h-4 ${selectedRatings.includes(rating.replace('+', ''))
+                                                        ? 'fill-current'
+                                                        : ''
+                                                        }`}
+                                                />
+                                            )}
                                             {rating}
                                         </m.button>
                                     ))}
@@ -349,13 +447,17 @@ function MovieList() {
 
                             {/* Active Filters */}
                             {(selectedGenres.length > 0 || selectedYears.length > 0 || selectedRatings.length > 0) && (
-                                <div className="flex items-center gap-2 mb-4">
-                                    <span className="text-gray-400 text-sm">Active Filters:</span>
+                                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 pt-2 sm:pt-4 border-t border-zinc-800">
+                                    <span className="text-gray-400 text-xs sm:text-sm">Active Filters:</span>
                                     <button
                                         onClick={clearFilters}
-                                        className="text-yellow-500 text-sm hover:underline"
+                                        disabled={isFiltering}
+                                        className={`text-yellow-500 text-xs sm:text-sm hover:underline self-start sm:self-auto touch-manipulation py-1 flex items-center gap-2 ${isFiltering ? 'opacity-50 cursor-not-allowed' : ''}`}
                                     >
-                                        Clear All
+                                        {isFiltering && (
+                                            <div className="w-3 h-3 border border-yellow-500 border-t-transparent rounded-full animate-spin"></div>
+                                        )}
+                                        Clear All ({selectedGenres.length + selectedYears.length + selectedRatings.length})
                                     </button>
                                 </div>
                             )}
@@ -364,15 +466,25 @@ function MovieList() {
                 </AnimatePresence>
 
                 {/* Movie Grid with improved loading states */}
-                <div className="container mx-auto px-4">
+                <div className="container mx-auto relative">
+                    {/* Filtering overlay */}
+                    {isFiltering && !loading && (
+                        <div className="absolute inset-0 bg-black/50 backdrop-blur-sm z-10 flex items-center justify-center rounded-lg">
+                            <div className="flex items-center gap-3 text-yellow-500">
+                                <div className="w-6 h-6 border-2 border-yellow-500 border-t-transparent rounded-full animate-spin"></div>
+                                <span className="text-sm sm:text-base">Filtering movies...</span>
+                            </div>
+                        </div>
+                    )}
+
                     <m.div
                         layout
-                        className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6"
+                        className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4 md:gap-6"
                     >
-                        <AnimatePresence mode="wait" initial={false}>
-                            {(loading || isFiltering) ? (
-                                // Skeleton loading state
-                                [...Array(10)].map((_, i) => (
+                        {(loading || isFiltering) ? (
+                            // Skeleton loading state
+                            <AnimatePresence>
+                                {[...Array(10)].map((_, i) => (
                                     <m.div
                                         key={`skeleton-${i}`}
                                         initial={{ opacity: 0 }}
@@ -382,77 +494,41 @@ function MovieList() {
                                     >
                                         <MovieSkeleton />
                                     </m.div>
-                                ))
-                            ) : movies.length > 0 ? (
-                                // Movie grid
-                                movies.map(movie => (
-                                    <m.div
+                                ))}
+                            </AnimatePresence>
+                        ) : movies.length > 0 ? (
+                            // Optimized Movie grid with lazy loading
+                            <AnimatePresence>
+                                {movies.map((movie, index) => (
+                                    <OptimizedMovieCard
                                         key={movie.id}
-                                        layout
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        exit={{ opacity: 0 }}
-                                        transition={{ duration: 0.3 }}
-                                    >
-                                        <Link
-                                            to={`/movie/${movie.id}`}
-                                            className="group relative"
-                                        >
-                                            {/* Movie Poster */}
-                                            <div className="relative aspect-[2/3] rounded-lg overflow-hidden">
-                                                <img
-                                                    src={movie.poster}
-                                                    alt={movie.title}
-                                                    className="w-full h-full object-cover"
-                                                />
-                                                {/* Overlay */}
-                                                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-yellow-500 text-black p-3 rounded-full transform scale-0 group-hover:scale-100 transition-transform">
-                                                        <Play className="w-6 h-6" fill="currentColor" />
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            {/* Movie Info */}
-                                            <div className="mt-2">
-                                                <h3 className="text-white font-medium text-sm sm:text-base line-clamp-1">
-                                                    {movie.title}
-                                                </h3>
-                                                <div className="flex items-center gap-2 text-sm text-gray-400">
-                                                    <div className="flex items-center">
-                                                        <Star className="w-4 h-4 text-yellow-500 mr-1" />
-                                                        {movie.rating}
-                                                    </div>
-                                                    <span>•</span>
-                                                    <span>{movie.year}</span>
-                                                </div>
-                                                <div className="flex flex-wrap gap-1 mt-1">
-                                                    {movie.genre.map(g => (
-                                                        <span
-                                                            key={g}
-                                                            className="text-xs px-2 py-0.5 bg-zinc-800 text-gray-300 rounded-full"
-                                                        >
-                                                            {g}
-                                                        </span>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        </Link>
-                                    </m.div>
-                                ))
-                            ) : (
-                                // Empty state
+                                        movie={movie}
+                                        index={index}
+                                    />
+                                ))}
+                            </AnimatePresence>
+                        ) : (
+                            // Empty state
+                            <AnimatePresence>
                                 <m.div
+                                    key="empty-state"
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
-                                    className="col-span-full text-center py-12"
+                                    exit={{ opacity: 0 }}
+                                    className="col-span-full text-center py-8 sm:py-12"
                                 >
-                                    <p className="text-gray-400 text-lg">
+                                    <p className="text-gray-400 text-base sm:text-lg">
                                         No movies match your selected filters
                                     </p>
+                                    <button
+                                        onClick={clearFilters}
+                                        className="mt-4 px-4 py-2 bg-yellow-500 text-black rounded-full hover:bg-yellow-400 transition-colors text-sm sm:text-base"
+                                    >
+                                        Clear Filters
+                                    </button>
                                 </m.div>
-                            )}
-                        </AnimatePresence>
+                            </AnimatePresence>
+                        )}
                     </m.div>
                 </div>
             </div>

@@ -5,8 +5,12 @@ import { TrendingUp, Star, Clock, Award } from 'lucide-react';
 import { useFetch } from '../services/useFetch';
 import { motion as m } from 'framer-motion';
 import { ErrorBoundary } from '../components/ErrorBoundary';
+import { useA11y } from '../hooks/useA11y';
 function App() {
   const [activeCategory, setActiveCategory] = useState('trending');
+
+  // Initialize accessibility features
+  useA11y();
 
   // Fetch different movie categories
   const { data: trendingMovies, loading: trendingLoading } = useFetch('/trending/movie/day?language=en-US');

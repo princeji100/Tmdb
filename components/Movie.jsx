@@ -1,19 +1,37 @@
 import { Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { motion as m } from 'framer-motion';
+import { useRef } from 'react';
+import { useLazyLoad, useImagePreload } from '../utilities/performance';
 
 const Movie = ({ movie }) => {
+  const imgRef = useRef();
+  const posterUrl = movie.poster_path
+    ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+    : '/placeholder.jpg';
+  
+  const isVisible = useLazyLoad(imgRef, { threshold: 0.1 });
+  const { isLoaded, error } = useImagePreload(isVisible ? posterUrl : '');
+
   return (
     <Link to={`/movie/${movie.id}`} className="block group">
-      <div className="aspect-[2/3] rounded-lg overflow-hidden bg-zinc-900 relative">
-        <img
-          src={movie.poster_path
-            ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
-            : '/placeholder.jpg'}
-          alt={movie.title}
-          className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300"
-          loading="lazy"
-        />
+      <div 
+        ref={imgRef}
+        className="aspect-[2/3] rounded-lg overflow-hidden bg-zinc-900 relative"
+      >
+        {isVisible && (
+          <img
+            src={posterUrl}
+            alt={movie.title}
+            className={`w-full h-full object-cover transform group-hover:scale-105 transition-all duration-300 ${
+              isLoaded ? 'opacity-100' : 'opacity-0'
+            } ${error ? 'opacity-50' : ''}`}
+            loading="lazy"
+          />
+        )}
+        {!isVisible && (
+          <div className="w-full h-full bg-gradient-to-br from-zinc-800 to-zinc-900 animate-pulse" />
+        )}
         <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity">
           <div className="absolute bottom-0 left-0 right-0 p-4">
             <div className="flex items-center gap-2 text-white">
