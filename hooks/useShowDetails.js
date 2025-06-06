@@ -39,11 +39,13 @@ export function useShowDetails(showId) {
                         network: showData.networks?.[0]?.name || 'N/A',
                         totalSeasons: showData.number_of_seasons || 0,
                         totalEpisodes: showData.number_of_episodes || 0,
-                        firstAirDate: new Date(showData.first_air_date).toLocaleDateString('en-US', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric'
-                        }),
+                        firstAirDate: showData.first_air_date
+                            ? new Date(showData.first_air_date).toLocaleDateString('en-US', {
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric'
+                            })
+                            : 'TBA',
                         genres: showData.genres?.map(g => g.name) || [],
                         popularity: showData.popularity?.toFixed(1) || 'N/A',
                         voteCount: showData.vote_count?.toLocaleString() || '0',

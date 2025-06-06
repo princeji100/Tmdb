@@ -61,7 +61,7 @@ function App() {
         {/* Active Movie Section with Error Handling */}
         <div className="bg-black pb-8 sm:pb-12">
           <div className="container mx-auto">
-            {activeData.loading ? (
+            {activeData?.loading ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                 {[...Array(10)].map((_, i) => (
                   <div key={i} className="animate-pulse">
@@ -71,7 +71,7 @@ function App() {
                   </div>
                 ))}
               </div>
-            ) : activeData.error ? (
+            ) : activeData?.error ? (
               <div className="text-center py-8">
                 <p className="text-red-500 mb-4">{activeData.error.message}</p>
                 {!activeData.error.isRetrying && (
@@ -83,7 +83,7 @@ function App() {
                   </button>
                 )}
               </div>
-            ) : activeData.data && activeData.data.length > 0 ? (
+            ) : activeData?.data && activeData.data.length > 0 ? (
               <Carousel
                 title={
                   <div className="flex items-center gap-1 sm:gap-2">

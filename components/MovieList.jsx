@@ -3,11 +3,11 @@ import { Link } from 'react-router-dom';
 import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { motion as m, AnimatePresence } from 'framer-motion';
 import { MovieSkeleton } from './MovieSkeleton';
-import { useLazyLoad, useImagePreload } from '../utilities/performance';
+import { useLazyLoad, useImagePreload, useIntersectionObserver } from '../utilities/performance';
 
 const ratingRanges = ['5+', '6+', '7+', '8+', '9+'];
 
-// Optimized Movie Card Component with Lazy Loading
+// Enhanced Movie Card Component with Smooth Animations
 const OptimizedMovieCard = ({ movie, index }) => {
     const imgRef = useRef();
     const posterUrl = movie.poster || '/placeholder.jpg';
@@ -15,59 +15,206 @@ const OptimizedMovieCard = ({ movie, index }) => {
     const isVisible = useLazyLoad(imgRef, { threshold: 0.1 });
     const { isLoaded, error } = useImagePreload(isVisible ? posterUrl : '');
 
+    // Enhanced animation variants
+    const cardVariants = {
+        hidden: {
+            opacity: 0,
+            scale: 0.8,
+            y: 50,
+            rotateX: -15
+        },
+        visible: {
+            opacity: 1,
+            scale: 1,
+            y: 0,
+            rotateX: 0,
+            transition: {
+                duration: 0.6,
+                delay: index * 0.1,
+                ease: [0.25, 0.46, 0.45, 0.94]
+            }
+        },
+        exit: {
+            opacity: 0,
+            scale: 0.8,
+            y: -30,
+            transition: {
+                duration: 0.3,
+                ease: "easeInOut"
+            }
+        }
+    };
+
+    const imageVariants = {
+        hidden: { scale: 1.2, opacity: 0 },
+        visible: {
+            scale: 1,
+            opacity: 1,
+            transition: {
+                duration: 0.8,
+                delay: 0.2,
+                ease: "easeOut"
+            }
+        }
+    };
+
+    const overlayVariants = {
+        hidden: { opacity: 0 },
+        visible: {
+            opacity: 1,
+            transition: {
+                duration: 0.3,
+                ease: "easeInOut"
+            }
+        }
+    };
+
     return (
         <m.div
             key={movie.id}
             layout
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            transition={{ duration: 0.3, delay: index * 0.05 }}
-            className="group"
+            variants={cardVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            whileHover={{
+                scale: 1.05,
+                y: -10,
+                transition: { duration: 0.3, ease: "easeOut" }
+            }}
+            whileTap={{ scale: 0.95 }}
+            className="group perspective-1000"
         >
             <Link to={`/movie/${movie.id}`} className="block">
-                <div
+                <m.div
                     ref={imgRef}
                     className="aspect-[2/3] rounded-lg overflow-hidden bg-zinc-900 relative shadow-lg hover:shadow-xl transition-all duration-300"
+                    whileHover={{
+                        boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)",
+                        transition: { duration: 0.3 }
+                    }}
                 >
                     {isVisible ? (
-                        <img
+                        <m.img
                             src={posterUrl}
                             alt={movie.title}
-                            className={`w-full h-full object-cover transform group-hover:scale-105 transition-all duration-300 ${isLoaded ? 'opacity-100' : 'opacity-0'
+                            variants={imageVariants}
+                            initial="hidden"
+                            animate="visible"
+                            className={`w-full h-full object-cover ${isLoaded ? 'opacity-100' : 'opacity-0'
                                 } ${error ? 'opacity-50' : ''}`}
                             loading="lazy"
+                            whileHover={{
+                                scale: 1.1,
+                                transition: { duration: 0.4, ease: "easeOut" }
+                            }}
                         />
                     ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-zinc-800 to-zinc-900 animate-pulse" />
+                        <m.div
+                            className="w-full h-full bg-gradient-to-br from-zinc-800 to-zinc-900"
+                            animate={{
+                                backgroundPosition: ["0% 0%", "100% 100%", "0% 0%"],
+                                transition: { duration: 2, repeat: Infinity, ease: "linear" }
+                            }}
+                        />
                     )}
 
-                    {/* Overlay */}
-                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <div className="absolute bottom-0 left-0 right-0 p-2 sm:p-3">
-                            <div className="flex items-center gap-1 sm:gap-2 text-white">
-                                <Star className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-500" fill="currentColor" />
-                                <span className="text-xs sm:text-sm">{movie.rating}</span>
+                    {/* Enhanced Overlay */}
+                    <m.div
+                        className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"
+                        variants={overlayVariants}
+                        initial="hidden"
+                        whileHover="visible"
+                    >
+                        <m.div
+                            className="absolute bottom-0 left-0 right-0 p-3"
+                            initial={{ y: 20, opacity: 0 }}
+                            whileHover={{
+                                y: 0,
+                                opacity: 1,
+                                transition: { delay: 0.1, duration: 0.3 }
+                            }}
+                        >
+                            <div className="flex items-center gap-2 text-white">
+                                <m.div
+                                    whileHover={{ rotate: 360 }}
+                                    transition={{ duration: 0.5 }}
+                                >
+                                    <Star className="w-4 h-4 text-yellow-500" fill="currentColor" />
+                                </m.div>
+                                <span className="text-sm font-medium">{movie.rating}</span>
                             </div>
-                        </div>
-                        <div className="absolute top-2 right-2">
-                            <Play className="w-6 h-6 sm:w-8 sm:h-8 text-white opacity-80" />
-                        </div>
-                    </div>
-                </div>
+                        </m.div>
+                        <m.div
+                            className="absolute top-3 right-3"
+                            initial={{ scale: 0, rotate: -180 }}
+                            whileHover={{
+                                scale: 1,
+                                rotate: 0,
+                                transition: { delay: 0.2, duration: 0.4, ease: "backOut" }
+                            }}
+                        >
+                            <Play className="w-8 h-8 text-white drop-shadow-lg" />
+                        </m.div>
+                    </m.div>
+                </m.div>
 
-                {/* Movie Info */}
-                <div className="mt-2 sm:mt-3 space-y-1">
-                    <h3 className="text-white font-medium text-xs sm:text-sm md:text-base line-clamp-2 group-hover:text-yellow-500 transition-colors">
+                {/* Enhanced Movie Info */}
+                <m.div
+                    className="mt-3 space-y-2"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{
+                        opacity: 1,
+                        y: 0,
+                        transition: { delay: 0.3, duration: 0.4 }
+                    }}
+                >
+                    <m.h3
+                        className="text-white font-medium text-sm md:text-base line-clamp-2 transition-colors duration-300"
+                        whileHover={{
+                            color: "#eab308",
+                            scale: 1.02,
+                            transition: { duration: 0.2 }
+                        }}
+                    >
                         {movie.title}
-                    </h3>
-                    <div className="flex items-center justify-between text-xs sm:text-sm text-gray-400">
-                        <span>{movie.year}</span>
+                    </m.h3>
+                    <m.div
+                        className="flex items-center justify-between text-sm text-gray-400"
+                        initial={{ opacity: 0 }}
+                        animate={{
+                            opacity: 1,
+                            transition: { delay: 0.4, duration: 0.3 }
+                        }}
+                    >
+                        <m.span
+                            whileHover={{
+                                color: "#9ca3af",
+                                scale: 1.05,
+                                transition: { duration: 0.2 }
+                            }}
+                        >
+                            {movie.year}
+                        </m.span>
                         {movie.genre && movie.genre.length > 0 && (
-                            <span className="truncate ml-2">{movie.genre[0]}</span>
+                            <m.span
+                                className="truncate ml-2 px-2 py-1 bg-zinc-800 rounded-full text-xs"
+                                whileHover={{
+                                    backgroundColor: "#374151",
+                                    scale: 1.05,
+                                    transition: { duration: 0.2 }
+                                }}
+                                initial={{ scale: 0 }}
+                                animate={{
+                                    scale: 1,
+                                    transition: { delay: 0.5, duration: 0.3, ease: "backOut" }
+                                }}
+                            >
+                                {movie.genre[0]}
+                            </m.span>
                         )}
-                    </div>
-                </div>
+                    </m.div>
+                </m.div>
             </Link>
         </m.div>
     );
@@ -85,6 +232,15 @@ function MovieList() {
     const [error, setError] = useState(null);
     const [retryCount, setRetryCount] = useState(0);
     const [isFiltering, setIsFiltering] = useState(false);
+
+    // Infinite scroll states
+    const [page, setPage] = useState(1);
+    const [hasMore, setHasMore] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
+    const loadMoreRef = useRef();
+
+    // Intersection observer for infinite scroll
+    const isLoadMoreVisible = useIntersectionObserver(loadMoreRef, { threshold: 0.1 });
 
     // Memoized values
     const availableYears = useMemo(() => {
@@ -110,6 +266,10 @@ function MovieList() {
                 ? prev.filter(g => g !== genreId)
                 : [...prev, genreId]
         );
+        // Reset pagination when filters change
+        setPage(1);
+        setMovies([]);
+        setHasMore(true);
         // Add small delay to show loading state
         setTimeout(() => setIsFiltering(false), 300);
     }, []);
@@ -121,6 +281,10 @@ function MovieList() {
                 ? prev.filter(y => y !== year)
                 : [...prev, year] // Allow multiple year selections
         );
+        // Reset pagination when filters change
+        setPage(1);
+        setMovies([]);
+        setHasMore(true);
         // Add small delay to show loading state
         setTimeout(() => setIsFiltering(false), 300);
     }, []);
@@ -132,6 +296,10 @@ function MovieList() {
                 ? prev.filter(r => r !== rating)
                 : [...prev, rating]
         );
+        // Reset pagination when filters change
+        setPage(1);
+        setMovies([]);
+        setHasMore(true);
         // Add small delay to show loading state
         setTimeout(() => setIsFiltering(false), 300);
     }, []);
@@ -140,6 +308,10 @@ function MovieList() {
         setSelectedGenres([]);
         setSelectedYears([]);
         setSelectedRatings([]);
+        // Reset pagination when filters change
+        setPage(1);
+        setMovies([]);
+        setHasMore(true);
         setIsFiltering(true);
         // Use RAF for smoother state updates
         requestAnimationFrame(() => {
@@ -173,16 +345,21 @@ function MovieList() {
         let isMounted = true;
         const controller = new AbortController();
 
-        const fetchMovies = async () => {
+        const fetchMovies = async (pageNum = 1, isLoadMore = false) => {
             try {
                 if (isMounted) {
-                    setIsFiltering(true);
-                    setLoading(true);
+                    if (isLoadMore) {
+                        setLoadingMore(true);
+                    } else {
+                        setIsFiltering(true);
+                        setLoading(true);
+                    }
                 }
 
                 const url = new URL(`${import.meta.env.VITE_TMDB_BASE_URL}/discover/movie`);
                 url.searchParams.append('language', 'en-US');
                 url.searchParams.append('sort_by', 'popularity.desc');
+                url.searchParams.append('page', pageNum.toString());
 
                 // Add filter params
                 if (selectedGenres.length > 0) {
@@ -226,7 +403,14 @@ function MovieList() {
                             .filter(Boolean) ?? []
                     }));
 
-                    setMovies(transformedMovies);
+                    if (isLoadMore) {
+                        setMovies(prev => [...prev, ...transformedMovies]);
+                    } else {
+                        setMovies(transformedMovies);
+                    }
+
+                    // Update pagination state
+                    setHasMore(pageNum < data.total_pages && data.results.length > 0);
                 }
             } catch (error) {
                 if (error.name === 'AbortError') return;
@@ -236,22 +420,40 @@ function MovieList() {
                 }
             } finally {
                 if (isMounted) {
-                    setLoading(false);
-                    // Add a small delay before removing the filtering state
-                    setTimeout(() => {
-                        setIsFiltering(false);
-                    }, 300);
+                    if (isLoadMore) {
+                        setLoadingMore(false);
+                    } else {
+                        setLoading(false);
+                        // Add a small delay before removing the filtering state
+                        setTimeout(() => {
+                            setIsFiltering(false);
+                        }, 300);
+                    }
                 }
             }
         };
 
-        fetchMovies();
+        fetchMovies(page, page > 1);
 
         return () => {
             isMounted = false;
             controller.abort();
         };
-    }, [selectedGenres, selectedYears, selectedRatings, genres]);
+    }, [selectedGenres, selectedYears, selectedRatings, genres, page]);
+
+    // Load more function
+    const loadMore = useCallback(() => {
+        if (!loadingMore && hasMore && !loading) {
+            setPage(prev => prev + 1);
+        }
+    }, [loadingMore, hasMore, loading]);
+
+    // Auto-load more when intersection observer triggers
+    useEffect(() => {
+        if (isLoadMoreVisible && hasMore && !loadingMore && !loading) {
+            loadMore();
+        }
+    }, [isLoadMoreVisible, hasMore, loadingMore, loading, loadMore]);
 
     useEffect(() => {
         if (!isFilterOpen) return;
@@ -529,7 +731,45 @@ function MovieList() {
                                 </m.div>
                             </AnimatePresence>
                         )}
+
+                        {/* Load More Skeletons */}
+                        <AnimatePresence>
+                            {loadingMore && (
+                                <m.div
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    className="col-span-full"
+                                >
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4 md:gap-6 mt-6">
+                                        {Array.from({ length: 12 }).map((_, i) => (
+                                            <m.div
+                                                key={`load-more-skeleton-${i}`}
+                                                initial={{ opacity: 0, y: 20 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                transition={{ duration: 0.3, delay: i * 0.05 }}
+                                            >
+                                                <MovieSkeleton />
+                                            </m.div>
+                                        ))}
+                                    </div>
+                                </m.div>
+                            )}
+                        </AnimatePresence>
+
                     </m.div>
+
+                    {/* Infinite Scroll Trigger - Outside Grid */}
+                    {!loading && !error && hasMore && (
+                        <div
+                            ref={loadMoreRef}
+                            className="h-20 flex items-center justify-center mt-8"
+                        >
+                            <div className="text-gray-500 text-sm">
+                                {loadingMore ? 'Loading more movies...' : 'Scroll for more'}
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

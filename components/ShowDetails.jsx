@@ -1,6 +1,6 @@
 import {
-    Star, Clock, Calendar, Play, Share2,
-    Award, Tv, Building2, BookOpen,
+    Star, Calendar, Play, Share2,
+    Award, Tv,
     Heart, ThumbsUp
 } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';

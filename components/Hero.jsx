@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Play, Star, Clock, Info } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useTrendingMovies } from '../hooks/useTrendingMovies';
@@ -6,7 +6,7 @@ import { useTrendingMovies } from '../hooks/useTrendingMovies';
 const Hero = () => {
     const { data: movies, loading, error } = useTrendingMovies();
     const [currentIndex, setCurrentIndex] = useState(0);
-    const currentMovie = movies[currentIndex];
+    const currentMovie = movies?.[currentIndex];
 
     // Auto-rotate featured movies
     useEffect(() => {

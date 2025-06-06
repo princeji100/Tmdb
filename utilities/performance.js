@@ -46,6 +46,12 @@ export const useImagePreload = (imageSrc) => {
     const [error, setError] = useState(null);
 
     useEffect(() => {
+        if (!imageSrc) {
+            setIsLoaded(false);
+            setError(null);
+            return;
+        }
+
         const img = new Image();
         img.onload = () => setIsLoaded(true);
         img.onerror = () => setError('Failed to load image');

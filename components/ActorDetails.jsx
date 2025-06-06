@@ -1,7 +1,7 @@
 import {
     User, TrendingUp, Film,
     Twitter, Facebook, Instagram, Calendar,
-    MapPin, Star
+    MapPin
 } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 import { useActorDetails } from '../hooks/useActorDetails';

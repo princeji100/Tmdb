@@ -30,7 +30,7 @@ export function useActorDetails(actorId) {
                     photo: personData.profile_path
                         ? `https://image.tmdb.org/t/p/w500${personData.profile_path}`
                         : '/placeholder-avatar.jpg',
-                    backdrop: creditsData.cast[0]?.backdrop_path
+                    backdrop: creditsData?.cast?.[0]?.backdrop_path
                         ? `https://image.tmdb.org/t/p/original${creditsData.cast[0].backdrop_path}`
                         : '/placeholder-backdrop.jpg',
                     biography: personData.biography || 'No biography available.',
@@ -42,8 +42,8 @@ export function useActorDetails(actorId) {
                         })
                         : 'Unknown',
                     birthPlace: personData.place_of_birth || 'Unknown',
-                    knownFor: creditsData.cast
-                        .sort((a, b) => b.popularity - a.popularity)
+                    knownFor: (creditsData?.cast || [])
+                        .sort((a, b) => (b.popularity || 0) - (a.popularity || 0))
                         .slice(0, 10)
                         .map(movie => ({
                             id: movie.id,
@@ -60,7 +60,7 @@ export function useActorDetails(actorId) {
                         birthday: personData.birthday,
                         age: personData.birthday ? calculateAge(personData.birthday) : null,
                         birthPlace: personData.place_of_birth,
-                        knownCredits: creditsData.cast.length + creditsData.crew.length,
+                        knownCredits: (creditsData?.cast?.length || 0) + (creditsData?.crew?.length || 0),
                         popularity: personData.popularity?.toFixed(1),
                         deathday: personData.deathday,
                     },
@@ -69,7 +69,7 @@ export function useActorDetails(actorId) {
                         twitter: externalIds.twitter_id,
                         facebook: externalIds.facebook_id,
                     },
-                    filmography: creditsData.cast
+                    filmography: (creditsData?.cast || [])
                         .filter(movie => movie.release_date) // Filter out movies without release dates
                         .map(movie => ({
                             id: movie.id,

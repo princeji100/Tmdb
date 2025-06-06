@@ -1,5 +1,3 @@
-import { motion as m } from 'framer-motion';
-
 export const MovieSkeleton = () => {
   return (
     <div className="bg-zinc-900/50 rounded-lg sm:rounded-xl overflow-hidden">

@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect } from 'react';
 
 export function useA11y() {
     useEffect(() => {
@@ -20,17 +20,4 @@ export function useA11y() {
             window.removeEventListener('mousedown', handleMouseDown);
         };
     }, []);
-
-    const handleEscapeKey = useCallback((handler) => {
-        const listener = (event) => {
-            if (event.key === 'Escape') {
-                handler(event);
-            }
-        };
-
-        window.addEventListener('keydown', listener);
-        return () => window.removeEventListener('keydown', listener);
-    }, []);
-
-    return { handleEscapeKey };
 }

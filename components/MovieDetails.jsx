@@ -33,7 +33,7 @@ const MovieDetailsSkeleton = () => (
             <div className="absolute inset-0 bg-gradient-radial from-zinc-800/50 to-black animate-pulse" />
             <div className="relative container mx-auto px-4 sm:px-6 md:px-8 h-full flex flex-col justify-end py-4 sm:py-6 md:py-8 pb-6 sm:pb-8 md:pb-12">
                 <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 md:gap-8 w-full">
-                    <div className="w-24 xs:w-28 sm:w-36 md:w-48 lg:w-56 xl:w-64 mx-auto sm:mx-0 aspect-[2/3] bg-gradient-to-br from-zinc-700/50 to-zinc-800/50 rounded-lg sm:rounded-xl shadow-2xl animate-pulse" />
+                    <div className="w-28 sm:w-36 md:w-48 lg:w-56 xl:w-64 mx-auto sm:mx-0 aspect-[2/3] bg-gradient-to-br from-zinc-700/50 to-zinc-800/50 rounded-lg sm:rounded-xl shadow-2xl animate-pulse" />
                     <div className="space-y-3 sm:space-y-4 md:space-y-6 flex-1 text-center sm:text-left">
                         <div className="h-6 sm:h-8 md:h-10 lg:h-12 bg-gradient-to-r from-zinc-700/50 to-zinc-800/50 rounded-lg w-4/5 mx-auto sm:mx-0 animate-pulse" />
                         <div className="flex flex-wrap justify-center sm:justify-start gap-1.5 sm:gap-2 md:gap-3">
@@ -226,7 +226,7 @@ const MovieDetails = () => {
                             >
                                 {/* Poster */}
                                 <motion.div
-                                    className="w-24 xs:w-28 sm:w-36 md:w-48 lg:w-56 xl:w-64 shrink-0 mx-auto sm:mx-0"
+                                    className="w-28 sm:w-36 md:w-48 lg:w-56 xl:w-64 shrink-0 mx-auto sm:mx-0"
                                     whileHover={{ scale: 1.05 }}
                                     transition={{ duration: 0.3 }}
                                 >
@@ -243,7 +243,7 @@ const MovieDetails = () => {
                                     className="text-white w-full max-w-3xl mt-2 sm:mt-0 text-center sm:text-left flex-1 min-w-0"
                                     variants={itemVariants}
                                 >
-                                    <h1 className="text-lg xs:text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold mb-2 sm:mb-3 md:mb-4 lg:mb-6 leading-tight drop-shadow-lg">
+                                    <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold mb-2 sm:mb-3 md:mb-4 lg:mb-6 leading-tight drop-shadow-lg">
                                         {movie.title}
                                     </h1>
                                     {/* Metadata */}
@@ -303,8 +303,8 @@ const MovieDetails = () => {
                                                 whileTap={{ scale: 0.98 }}
                                             >
                                                 <Heart className="w-3.5 sm:w-4 md:w-5 h-3.5 sm:h-4 md:h-5 group-hover:fill-red-500 group-hover:text-red-500 transition-all duration-300" />
-                                                <span className="hidden xs:inline sm:hidden md:inline">Watchlist</span>
-                                                <span className="xs:hidden sm:inline md:hidden">♡</span>
+                                                <span className="hidden sm:inline md:inline">Watchlist</span>
+                                                <span className="sm:hidden md:hidden">♡</span>
                                             </motion.button>
                                             <motion.button
                                                 className="group flex items-center justify-center gap-1 sm:gap-1.5 bg-white/10 text-white px-2.5 sm:px-3 md:px-4 py-2.5 sm:py-3 md:py-3.5 rounded-full hover:bg-white/20 transition-all duration-300 backdrop-blur-sm border border-white/10 hover:border-blue-500/50 text-xs sm:text-sm font-medium flex-1"

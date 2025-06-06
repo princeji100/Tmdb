@@ -1,20 +1,18 @@
 import { Star, Clock, RefreshCcw } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { motion as m, AnimatePresence } from 'framer-motion';
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { MovieSkeleton } from './MovieSkeleton';
-import { InlineLoader } from './LoadingStates';
+
 import { usePaginatedData } from '../hooks/usePaginatedData';
-import { useIntersectionObserver } from '../utilities/performance';
 
 const TopRated = () => {
     // Add genres state
     const [genres, setGenres] = useState([]);
-    const loadMoreRef = useRef();
 
     // Use the paginated data hook
     const {
-        data: allMovies,
+        data: rawMovies,
         loading,
         loadingMore,
         error,
@@ -23,8 +21,28 @@ const TopRated = () => {
         retry
     } = usePaginatedData('/movie/top_rated?language=en-US&vote_average.gte=8');
 
-    // Intersection observer for infinite scroll
-    const isLoadMoreVisible = useIntersectionObserver(loadMoreRef, { threshold: 0.1 });
+    // Transform raw movie data to expected format
+    const allMovies = useMemo(() => {
+        if (!rawMovies.length) return [];
+
+        return rawMovies.map(movie => ({
+            id: movie.id,
+            title: movie.title,
+            poster: movie.poster_path
+                ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+                : '/placeholder.jpg',
+            rating: movie.vote_average?.toFixed(1) ?? 'N/A',
+            year: movie.release_date
+                ? new Date(movie.release_date).getFullYear().toString()
+                : 'N/A',
+            duration: null, // Runtime not available in list endpoint
+            genre: genres.length > 0 && movie.genre_ids
+                ? movie.genre_ids
+                    .map(id => genres.find(g => g.id === id)?.name)
+                    .filter(Boolean)
+                : []
+        }));
+    }, [rawMovies, genres]);
 
     // Add genres fetch
     useEffect(() => {
@@ -49,12 +67,12 @@ const TopRated = () => {
         fetchGenres();
     }, []);
 
-    // Auto-load more when intersection observer triggers
-    useEffect(() => {
-        if (isLoadMoreVisible && hasMore && !loadingMore && !loading) {
+    // Manual load more handler
+    const handleLoadMore = useCallback(() => {
+        if (!loadingMore && hasMore) {
             loadMore();
         }
-    }, [isLoadMoreVisible, hasMore, loadingMore, loading, loadMore]);
+    }, [loadMore, loadingMore, hasMore]);
 
     // Handle retry
     const handleRetry = useCallback(() => {
@@ -62,21 +80,21 @@ const TopRated = () => {
     }, [retry]);
 
     return (
-        <div className="min-h-screen bg-black text-white py-4 sm:py-8 px-2 sm:px-4">
+        <div className="min-h-screen bg-black text-white py-3 sm:py-6 md:py-8 px-3 sm:px-4 md:px-6">
             {/* Header Section */}
             <m.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="container mx-auto mb-6 sm:mb-12"
+                className="container mx-auto mb-6 sm:mb-8 md:mb-12"
             >
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2 sm:mb-4">
-                    <h1 className="text-2xl sm:text-4xl font-bold">Top Rated Movies</h1>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-3 sm:mb-4">
+                    <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">Top Rated Movies</h1>
                     <div className="flex items-center bg-yellow-500/20 px-3 py-1 rounded-full self-start sm:self-auto">
                         <Star className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-500 mr-1" fill="currentColor" />
                         <span className="text-yellow-500 font-semibold text-sm sm:text-base">8.0+ Rating</span>
                     </div>
                 </div>
-                <p className="text-gray-400 text-sm sm:text-base">
+                <p className="text-gray-400 text-sm sm:text-base leading-relaxed">
                     Exceptional films that received outstanding ratings from audiences worldwide
                 </p>
             </m.div>
@@ -88,14 +106,14 @@ const TopRated = () => {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="container mx-auto text-center py-12"
+                        className="container mx-auto text-center py-8 sm:py-12"
                     >
                         <div className="max-w-md mx-auto bg-zinc-900/50 rounded-xl p-6 border border-zinc-800">
-                            <p className="text-red-500 mb-4">{error.message}</p>
+                            <p className="text-red-500 mb-4 text-sm sm:text-base">{error.message}</p>
                             {!error.isRetrying && (
                                 <button
                                     onClick={handleRetry}
-                                    className="flex items-center gap-2 mx-auto px-4 py-2 bg-yellow-500 text-black rounded-full hover:bg-yellow-400 transition-colors"
+                                    className="flex items-center gap-2 mx-auto px-4 py-2 bg-yellow-500 text-black rounded-full hover:bg-yellow-400 transition-colors text-sm sm:text-base"
                                 >
                                     <RefreshCcw className="w-4 h-4" />
                                     Try Again
@@ -107,14 +125,14 @@ const TopRated = () => {
             </AnimatePresence>
 
             {/* Movie Grid with Loading States */}
-            <div className="container mx-auto">
+            <div className="container mx-auto max-w-7xl">
                 <m.div
                     layout
-                    className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4 md:gap-6"
+                    className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4 md:gap-6"
                 >
                     {loading ? (
                         // Initial loading state
-                        Array.from({ length: 8 }).map((_, i) => (
+                        Array.from({ length: 12 }).map((_, i) => (
                             <m.div
                                 key={`skeleton-${i}`}
                                 initial={{ opacity: 0 }}
@@ -134,11 +152,15 @@ const TopRated = () => {
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0 }}
-                                transition={{ duration: 0.3, delay: index * 0.05 }}
+                                transition={{
+                                    duration: 0.4,
+                                    delay: Math.min(index * 0.03, 0.5),
+                                    ease: "easeOut"
+                                }}
                             >
                                 <Link
                                     to={`/movie/${movie.id}`}
-                                    className="bg-zinc-900/50 rounded-xl overflow-hidden group hover:bg-zinc-800/50 transition-all duration-300 transform hover:-translate-y-1"
+                                    className="bg-zinc-900/50 rounded-xl overflow-hidden group hover:bg-zinc-800/50 transition-all duration-300 transform hover:-translate-y-1 active:scale-95 touch-manipulation"
                                 >
                                     {/* Poster */}
                                     <div className="relative aspect-[2/3] overflow-hidden">
@@ -146,6 +168,9 @@ const TopRated = () => {
                                             src={movie.poster}
                                             alt={movie.title}
                                             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                                            onError={(e) => {
+                                                e.target.src = '/placeholder.jpg';
+                                            }}
                                         />
                                         {/* Rating Badge */}
                                         <div className="absolute top-2 right-2 flex items-center gap-1 bg-black/60 backdrop-blur-sm px-2 py-1 rounded-full">
@@ -155,11 +180,11 @@ const TopRated = () => {
                                     </div>
 
                                     {/* Movie Info */}
-                                    <div className="p-4">
-                                        <h2 className="text-lg font-semibold mb-2 group-hover:text-yellow-500 transition-colors line-clamp-1">
+                                    <div className="p-3 sm:p-4">
+                                        <h2 className="text-base sm:text-lg font-semibold mb-2 group-hover:text-yellow-500 transition-colors line-clamp-1">
                                             {movie.title}
                                         </h2>
-                                        <div className="flex items-center gap-3 text-sm text-gray-400 mb-3">
+                                        <div className="flex items-center gap-2 sm:gap-3 text-sm text-gray-400 mb-3">
                                             {movie.duration && (
                                                 <>
                                                     <div className="flex items-center gap-1">
@@ -192,7 +217,11 @@ const TopRated = () => {
                             animate={{ opacity: 1 }}
                             className="col-span-full text-center py-12"
                         >
-                            <p className="text-gray-400">No movies found.</p>
+                            <div className="max-w-sm mx-auto">
+                                <Star className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                                <p className="text-gray-400 text-base">No top-rated movies found.</p>
+                                <p className="text-gray-500 text-sm mt-2">Try refreshing the page or check back later.</p>
+                            </div>
                         </m.div>
                     )}
                 </m.div>
@@ -206,8 +235,8 @@ const TopRated = () => {
                             exit={{ opacity: 0 }}
                             className="mt-6"
                         >
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4 md:gap-6">
-                                {Array.from({ length: 5 }).map((_, i) => (
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4 md:gap-6">
+                                {Array.from({ length: 6 }).map((_, i) => (
                                     <m.div
                                         key={`load-more-skeleton-${i}`}
                                         initial={{ opacity: 0, y: 20 }}
@@ -222,20 +251,51 @@ const TopRated = () => {
                     )}
                 </AnimatePresence>
 
-                {/* Infinite Scroll Trigger */}
-                {!loading && !error && hasMore && (
-                    <div
-                        ref={loadMoreRef}
-                        className="flex justify-center mt-6 sm:mt-8 py-4"
-                    >
-                        {loadingMore && (
-                            <div className="flex items-center gap-2 text-yellow-500">
-                                <InlineLoader size="sm" className="border-yellow-500 border-t-transparent" />
-                                <span>Loading more movies...</span>
-                            </div>
-                        )}
-                    </div>
-                )}
+                {/* Manual Load More Button */}
+                <AnimatePresence>
+                    {!loading && !error && hasMore && (
+                        <m.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            className="flex justify-center mt-6 sm:mt-8"
+                        >
+                            <m.button
+                                onClick={handleLoadMore}
+                                disabled={loadingMore}
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                className="px-6 sm:px-8 py-3 bg-yellow-500 text-black rounded-full hover:bg-yellow-400 
+                                    disabled:bg-yellow-500/50 disabled:cursor-not-allowed transition-all duration-300
+                                    shadow-lg hover:shadow-xl transform text-sm sm:text-base font-medium"
+                            >
+                                <AnimatePresence mode="wait">
+                                    {loadingMore ? (
+                                        <m.div
+                                            key="loading"
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                            exit={{ opacity: 0 }}
+                                            className="flex items-center gap-2"
+                                        >
+                                            <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                                            <span>Loading...</span>
+                                        </m.div>
+                                    ) : (
+                                        <m.span
+                                            key="text"
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                            exit={{ opacity: 0 }}
+                                        >
+                                            Load More Movies
+                                        </m.span>
+                                    )}
+                                </AnimatePresence>
+                            </m.button>
+                        </m.div>
+                    )}
+                </AnimatePresence>
             </div>
         </div>
     );

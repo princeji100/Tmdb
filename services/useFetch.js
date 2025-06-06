@@ -1,16 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
 
-const RETRY_COUNT = 3;
-const RETRY_DELAY = 1000;
-
 export const useFetch = (endpoint) => {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [retryCount, setRetryCount] = useState(0);
 
-    const fetchWithRetry = useCallback(async () => {
+    const fetchData = useCallback(async (currentRetryCount = 0) => {
         try {
+            setLoading(true);
             const response = await fetch(
                 `${import.meta.env.VITE_TMDB_BASE_URL}${endpoint}`,
                 {
@@ -28,18 +26,18 @@ export const useFetch = (endpoint) => {
             const json = await response.json();
             setData(json.results || json);
             setError(null);
-            setRetryCount(0); // Reset retry count on success
+            setRetryCount(0);
         } catch (err) {
-            const backoffDelay = Math.min(1000 * Math.pow(2, retryCount), 10000);
-            setError({
-                message: `Failed to load data. Retrying in ${backoffDelay / 1000}s...`,
-                isRetrying: true
-            });
-
-            if (retryCount < 3) {
+            if (currentRetryCount < 3) {
+                const backoffDelay = Math.min(1000 * Math.pow(2, currentRetryCount), 10000);
+                setError({
+                    message: `Failed to load data. Retrying in ${backoffDelay / 1000}s...`,
+                    isRetrying: true
+                });
+                
                 setTimeout(() => {
-                    setRetryCount(prev => prev + 1);
-                    fetchWithRetry();
+                    setRetryCount(currentRetryCount + 1);
+                    fetchData(currentRetryCount + 1);
                 }, backoffDelay);
             } else {
                 setError({
@@ -50,19 +48,17 @@ export const useFetch = (endpoint) => {
         } finally {
             setLoading(false);
         }
-    }, [endpoint, retryCount]);
+    }, [endpoint]);
 
     // Initial fetch
     useEffect(() => {
-        fetchWithRetry();
-    }, [fetchWithRetry]);
+        fetchData();
+    }, [fetchData]);
 
     const retry = useCallback(() => {
-        setLoading(true);
-        setError(null);
         setRetryCount(0);
-        fetchWithRetry();
-    }, [fetchWithRetry]);
+        fetchData();
+    }, [fetchData]);
 
     return { data, loading, error, retry };
 };

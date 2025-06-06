@@ -77,10 +77,6 @@ const router = createBrowserRouter([
     )
   },
 ])
-//  its not best practicel to use You are manually adding the <Nav /> component to every route. This is not scalable and can lead to inconsistencies if you forget to include it in a new route.
-// No Shared Layout:
-// Since there is no shared layout, the <Nav /> component is not part of a unified structure. This can cause issues if you want to add more shared components (e.g., a footer) in the future.
-//using in main becaue routeing is use
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
