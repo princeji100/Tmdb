@@ -2,7 +2,7 @@
 
 A modern, responsive web application for exploring and discovering movies. Built with React and designed with a sleek, user-friendly interface.
 
-![Movie Explorer Screenshot](public/screenshot.jpg)
+![Movie Explorer Screenshot](public/Screenshot.png)
 
 ## Features
 
