@@ -439,7 +439,7 @@ function MovieList() {
             isMounted = false;
             controller.abort();
         };
-    }, [selectedGenres, selectedYears, selectedRatings, genres, page]);
+    }, [selectedGenres, selectedYears, selectedRatings, genres, page, retryCount]);
 
     // Load more function
     const loadMore = useCallback(() => {

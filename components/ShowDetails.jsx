@@ -4,7 +4,8 @@ import {
     Heart, ThumbsUp
 } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useShowDetails } from '../hooks/useShowDetails';
 import { useEffect, useState } from 'react';
 
@@ -402,7 +403,7 @@ const ShowDetails = () => {
                                                             <span>{similarShow.vote_average?.toFixed(1)}</span>
                                                         </div>
                                                         <span>•</span>
-                                                        <span>{new Date(similarShow.first_air_date).getFullYear()}</span>
+                                                        <span>{similarShow.first_air_date ? new Date(similarShow.first_air_date).getFullYear() : 'N/A'}</span>
                                                     </div>
                                                     <p className="text-gray-400 text-xs sm:text-sm line-clamp-2 sm:line-clamp-3">
                                                         {similarShow.overview}

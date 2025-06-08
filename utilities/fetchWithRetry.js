@@ -36,7 +36,20 @@ export class ApiCache {
 const apiCache = new ApiCache();
 
 export async function fetchWithRetry(url, options = {}, retryCount = 0) {
-    const cacheKey = `${url}${JSON.stringify(options)}`;
+    // Create a safe cache key by only including serializable properties from options
+    const safeOptions = {};
+    // Only include primitive values and simple arrays that can be safely serialized
+    if (options.headers) {
+        safeOptions.headers = { ...options.headers };
+    }
+    if (options.method) {
+        safeOptions.method = options.method;
+    }
+    if (options.body && typeof options.body === 'string') {
+        safeOptions.body = options.body;
+    }
+
+    const cacheKey = `${url}-${JSON.stringify(safeOptions)}`;
 
     try {
         // Check cache first
